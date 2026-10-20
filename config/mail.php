@@ -37,6 +37,11 @@ return [
 
     'mailers' => [
 
+        // Envoi par l'API Brevo (MAIL_MAILER=brevo), quand le SMTP est bloqué par l'hébergeur.
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
