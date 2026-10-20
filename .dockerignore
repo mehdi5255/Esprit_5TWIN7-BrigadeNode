@@ -19,3 +19,4 @@ tests-junit.xml
 .phpunit.result.cache
 docker-compose.yml
 *.md
+database/*.sqlite

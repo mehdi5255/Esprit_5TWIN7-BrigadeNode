@@ -25,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->web(append: [VerifierStatutCompte::class]);
         $middleware->redirectUsersTo(fn ($request) => $request->user()->homeRoute());
+        // Hébergement derrière un proxy HTTPS (Render) : liens et formulaires générés en https.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Accès refusé par Spatie : page 403 avec un message en français.

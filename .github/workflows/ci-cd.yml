@@ -143,3 +143,42 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploiement:
+    name: 5. Mise en ligne sur Render (CD)
+    needs: docker
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.SITE_URL }}
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - name: Demander à Render de déployer la nouvelle image
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::warning::Secret RENDER_DEPLOY_HOOK_URL absent : déploiement ignoré."
+            exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          echo "Déploiement demandé à Render."
+
+      - name: 6. Vérifier que le site public répond
+        run: |
+          if [ -z "$SITE_URL" ]; then
+            echo "::warning::Variable SITE_URL absente : vérification ignorée."
+            exit 0
+          fi
+          # Render redémarre le service (et recrée les données de démo) : on attend jusqu'à 10 minutes.
+          sleep 60
+          for essai in $(seq 1 30); do
+            if curl -fsS --max-time 30 "$SITE_URL/up" > /dev/null && curl -fsS --max-time 30 "$SITE_URL/" | grep -q "TextileCycle"; then
+              echo "Site en ligne : $SITE_URL"
+              exit 0
+            fi
+            echo "Pas encore prêt (essai $essai/30)…"
+            sleep 20
+          done
+          echo "::error::Le site $SITE_URL ne répond pas."
+          exit 1
