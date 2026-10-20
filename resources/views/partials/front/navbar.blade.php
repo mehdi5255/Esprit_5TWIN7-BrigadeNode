@@ -1,9 +1,27 @@
 @php
     $user = auth()->user();
     $particulier = $user?->hasRole('particulier');
+    // [URL, lien actif ?, libellé]. Inspirations fait partie de Transformations ; besoins et événements forment « Solidarité ».
+    $ateliersReparation = request()->routeIs('ateliers.index') && request('service') === 'reparation';
+    $solidarite = request()->routeIs('besoins.*', 'evenements.*');
     $liens = $particulier
-        ? [['vetements.index', 'vetements.*', 'Mes vêtements'], ['reparations.index', 'reparations.*', 'Réparations'], ['transformations.index', 'transformations.*', 'Transformations'], ['dons.index', 'dons.*', 'Dons'], ['ateliers.index', 'ateliers.*', 'Ateliers'], ['associations.index', 'associations.*', 'Associations']]
-        : [['home', 'home', 'Accueil'], ['ateliers.index', 'ateliers.*', 'Ateliers'], ['associations.index', 'associations.*', 'Associations'], ['besoins.index', 'besoins.*', 'Besoins des associations']];
+        ? [
+            [route('vetements.index'), request()->routeIs('vetements.*'), 'Mes vêtements'],
+            [route('reparations.index'), request()->routeIs('reparations.*'), 'Réparations'],
+            [route('transformations.index'), request()->routeIs('transformations.*', 'inspirations.*'), 'Transformations'],
+            [route('dons.index'), request()->routeIs('dons.*'), 'Dons'],
+            [route('besoins.index'), $solidarite, 'Solidarité'],
+            [route('ateliers.index'), request()->routeIs('ateliers.*'), 'Ateliers'],
+            [route('associations.index'), request()->routeIs('associations.*'), 'Associations'],
+        ]
+        : [
+            [route('home'), request()->routeIs('home'), 'Accueil'],
+            [route('ateliers.index', ['service' => 'reparation']), $ateliersReparation, 'Réparations'],
+            [route('inspirations.index'), request()->routeIs('inspirations.*'), 'Transformations'],
+            [route('besoins.index'), $solidarite, 'Solidarité'],
+            [route('ateliers.index'), request()->routeIs('ateliers.*') && ! $ateliersReparation, 'Ateliers'],
+            [route('associations.index'), request()->routeIs('associations.*'), 'Associations'],
+        ];
 @endphp
 <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur">
     <nav class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Navigation principale">
@@ -12,8 +30,8 @@
             <span class="font-display text-xl font-extrabold tracking-tight text-forest-900">Textile<span class="text-forest-500">Cycle</span></span>
         </a>
         <div class="hidden items-center gap-6 text-sm font-semibold text-slate-600 lg:flex">
-            @foreach($liens as [$route, $pattern, $label])
-            <a href="{{ route($route) }}" class="{{ request()->routeIs($pattern) ? 'text-forest-700' : 'transition hover:text-forest-700' }}">{{ $label }}</a>
+            @foreach($liens as [$url, $actif, $label])
+            <a href="{{ $url }}" class="{{ $actif ? 'text-forest-700' : 'transition hover:text-forest-700' }}">{{ $label }}</a>
             @endforeach
         </div>
         <div class="flex items-center gap-3">

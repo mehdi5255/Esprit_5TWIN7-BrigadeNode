@@ -17,11 +17,36 @@
                     <x-badge :label="$vetement->statut->label()" :color="$vetement->statut->color()" />
                 </div>
                 <dl class="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-                    @foreach(['État' => $vetement->etat->label(), 'Taille' => $vetement->taille, 'Matière' => $vetement->matiere, 'Couleur' => $vetement->couleur] as $label => $valeur)
+                    @foreach(['État' => $vetement->etat->label(), 'Taille' => $vetement->taille, 'Couleur' => $vetement->couleur, 'Poids' => $vetement->poids_grammes ? number_format($vetement->poids_grammes, 0, ',', ' ').' g' : null] as $label => $valeur)
                     <div class="rounded-2xl bg-slate-50 p-3"><dt class="text-xs text-slate-500">{{ $label }}</dt><dd class="mt-1 font-semibold">{{ $valeur ?: '—' }}</dd></div>
                     @endforeach
                 </dl>
+                <div class="mt-4 rounded-2xl bg-slate-50 p-3 text-sm">
+                    <p class="text-xs text-slate-500">Composition @if($vetement->composition_estimee)<span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700">estimée</span>@endif</p>
+                    @if($vetement->compositionTexte())<p class="mt-1 font-semibold">{{ $vetement->compositionTexte() }}</p>
+                    @else<p class="mt-1 text-slate-500">{{ $vetement->matiere ? $vetement->matiere.' — ' : '' }}<a href="{{ route('vetements.edit', $vetement) }}" class="font-semibold text-forest-700 hover:underline">Compléter la composition</a> pour connaître son impact.</p>@endif
+                </div>
                 @if($vetement->description)<p class="mt-6 leading-7 text-slate-600">{{ $vetement->description }}</p>@endif
+
+                @if($impact = $vetement->impact())
+                <div class="mt-6 rounded-2xl bg-forest-900 p-5 text-white">
+                    <p class="flex items-center gap-2 text-sm font-semibold text-emerald-200"><i data-lucide="leaf" class="h-4 w-4"></i>Impact évité en lui donnant une seconde vie</p>
+                    <div class="mt-3 flex flex-wrap gap-8">
+                        <div><p class="font-display text-3xl font-bold">≈ {{ number_format($impact['co2'], 1, ',', ' ') }} kg</p><p class="text-xs text-emerald-100/70">de CO₂</p></div>
+                        <div><p class="font-display text-3xl font-bold">≈ {{ number_format($impact['eau'], 0, ',', ' ') }} L</p><p class="text-xs text-emerald-100/70">d'eau</p></div>
+                    </div>
+                    <p class="mt-3 text-xs text-emerald-100/60">Estimation : fabrication d'un vêtement neuf équivalent, évitée en le réparant, le transformant ou le donnant{{ $vetement->composition_estimee ? ' (composition estimée)' : '' }}.</p>
+                </div>
+                @endif
+
+                @if($vetement->conseilsEntretien()->isNotEmpty())
+                <div class="mt-6">
+                    <p class="flex items-center gap-2 text-sm font-semibold"><i data-lucide="sparkles" class="h-4 w-4 text-forest-600"></i>Pour le faire durer</p>
+                    <ul class="mt-2 space-y-1.5 text-sm text-slate-600">
+                        @foreach($vetement->conseilsEntretien() as $matiere => $conseil)<li><span class="font-semibold text-slate-800">{{ $matiere }} :</span> {{ $conseil }}</li>@endforeach
+                    </ul>
+                </div>
+                @endif
                 <div class="mt-8 flex flex-wrap gap-3">
                     @if($vetement->estDisponible())
                         <x-button :href="route('reparations.create', ['vetement' => $vetement->id])" label="Réparer" icon="wrench" />

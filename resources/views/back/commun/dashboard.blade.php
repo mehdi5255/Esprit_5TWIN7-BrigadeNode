@@ -10,6 +10,7 @@
 </div>
 
 @if($enAttente->isNotEmpty())
+@can('gerer-utilisateurs')
 <section class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-6">
     <h2 class="flex items-center gap-2 font-display text-lg font-bold text-amber-900"><i data-lucide="hourglass" class="h-5 w-5"></i>{{ $enAttente->count() }} compte{{ $enAttente->count() > 1 ? 's' : '' }} en attente de validation</h2>
     <div class="mt-4 divide-y divide-amber-200/60">
@@ -22,6 +23,7 @@
         @endforeach
     </div>
 </section>
+@endcan
 @endif
 
 <div class="grid gap-6 xl:grid-cols-3">
@@ -57,7 +59,7 @@
 </div>
 
 <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5"><div><h2 class="font-display text-lg font-bold">Demandes récentes</h2><p class="mt-1 text-sm text-slate-500">Dernières activités de la plateforme · {{ $stats['utilisateurs'] }} utilisateurs · note moyenne {{ $stats['note_moyenne'] ? number_format($stats['note_moyenne'], 1, ',', '').' / 5' : '—' }}</p></div><a href="{{ route('admin.rapports.index') }}" class="text-sm font-semibold text-forest-700">Rapports</a></div>
+    <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5"><div><h2 class="font-display text-lg font-bold">Demandes récentes</h2><p class="mt-1 text-sm text-slate-500">Dernières activités de la plateforme · {{ $stats['utilisateurs'] }} utilisateurs · note moyenne {{ $stats['note_moyenne'] ? number_format($stats['note_moyenne'], 1, ',', '').' / 5' : '—' }}</p></div>@can('voir-rapports')<a href="{{ route('admin.rapports.index') }}" class="text-sm font-semibold text-forest-700">Rapports</a>@endcan</div>
     <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-6 py-3">Demande</th><th class="px-6 py-3">Membre</th><th class="px-6 py-3">Partenaire</th><th class="px-6 py-3">Statut</th><th class="px-6 py-3">Date</th></tr></thead><tbody class="divide-y divide-slate-100">
         @forelse($recentes as $demande)
         @php $segment = ['REP' => 'reparations', 'TRA' => 'transformations', 'DON' => 'dons'][$demande::PREFIXE]; @endphp

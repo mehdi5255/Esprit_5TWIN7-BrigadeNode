@@ -7,9 +7,12 @@ use App\Enums\TypeService;
 use App\Http\Controllers\Concerns\ExecuteDesTransitions;
 use App\Http\Controllers\Controller;
 use App\Models\Ateliers\Atelier;
+use App\Models\Transformations\ConseillerUpcycling;
 use App\Models\Transformations\DemandeTransformation;
+use App\Models\Transformations\Inspiration;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class DemandeTransformationController extends Controller
 {
@@ -29,11 +32,25 @@ class DemandeTransformationController extends Controller
 
     public function create(Request $request)
     {
+        $vetements = $request->user()->vetements()->where('statut', StatutVetement::DISPONIBLE)->with('categorie')->orderBy('nom')->get();
+        // Inspiration choisie depuis la galerie (« Je veux ce projet »).
+        $inspirationChoisie = $request->integer('inspiration') ? Inspiration::visibles()->with(['atelier', 'categorie'])->find($request->integer('inspiration')) : null;
+        $compatibles = $inspirationChoisie ? $vetements->where('categorie_id', $inspirationChoisie->categorie_id) : collect();
+
         return view('front.transformations.create', [
-            'vetements' => $request->user()->vetements()->where('statut', StatutVetement::DISPONIBLE)->orderBy('nom')->get(),
+            'vetements' => $vetements,
             'ateliers' => Atelier::actifs()->proposant(TypeService::TRANSFORMATION)->get(),
-            'selection' => $request->integer('vetement'),
+            // Suggestions : les inspirations des catégories de vêtements que le particulier peut transformer.
+            'inspirations' => Inspiration::visibles()->with(['atelier', 'categorie'])
+                ->where(fn ($q) => $q->whereIn('categorie_id', $vetements->pluck('categorie_id'))->orWhere('id', $inspirationChoisie?->id))
+                ->latest()->get(),
+            'inspirationChoisie' => $inspirationChoisie,
+            // Un seul vêtement compatible avec l'inspiration choisie : on le présélectionne.
+            'selection' => $request->integer('vetement') ?: ($compatibles->count() === 1 ? $compatibles->first()->id : null),
             'atelierChoisi' => $request->integer('atelier'),
+            // Projet choisi dans l'assistant IA : idée préremplie et aperçu généré joint à la demande.
+            'ideeIa' => $request->string('idee')->limit(2000)->value() ?: null,
+            'apercu' => ConseillerUpcycling::apercuAppartientA($request->input('apercu'), $request->user()->id) ? $request->input('apercu') : null,
         ]);
     }
 
@@ -41,17 +58,37 @@ class DemandeTransformationController extends Controller
     {
         $data = $request->validate([
             'vetement_id' => ['required', Rule::exists('vetements', 'id')->where('user_id', $request->user()->id)],
-            'atelier_id' => ['required', function ($attribute, $value, $fail) {
+            'inspiration_id' => ['nullable', 'integer', function ($attribute, $value, $fail) {
+                if (! Inspiration::visibles()->whereKey($value)->exists()) {
+                    $fail('Cette inspiration n’est plus disponible.');
+                }
+            }],
+            // Avec une inspiration, l'atelier et l'idée viennent du modèle.
+            'atelier_id' => ['required_without:inspiration_id', 'nullable', function ($attribute, $value, $fail) {
                 if (! Atelier::actifs()->proposant(TypeService::TRANSFORMATION)->whereKey($value)->exists()) {
                     $fail('Cet atelier ne propose pas de transformation.');
                 }
             }],
-            'idee' => ['required', 'string', 'max:2000'],
+            'idee' => ['required_without:inspiration_id', 'nullable', 'string', 'max:2000'],
             'budget_max' => ['nullable', 'numeric', 'min:0', 'max:9999'],
             'date_souhaitee' => ['nullable', 'date', 'after_or_equal:today'],
-        ]);
+            'apercu_ia' => ['nullable', 'string', function ($attribute, $value, $fail) use ($request) {
+                if (! ConseillerUpcycling::apercuAppartientA($value, $request->user()->id)) {
+                    $fail('Cet aperçu n’est plus disponible.');
+                }
+            }],
+        ], [], ['inspiration_id' => 'inspiration', 'atelier_id' => 'atelier', 'idee' => 'idée']);
 
         $vetement = $request->user()->vetements()->findOrFail($data['vetement_id']);
+
+        if ($data['inspiration_id'] ?? null) {
+            $inspiration = Inspiration::with('categorie')->findOrFail($data['inspiration_id']);
+            if ($vetement->categorie_id !== $inspiration->categorie_id) {
+                throw ValidationException::withMessages(['inspiration_id' => "Cette inspiration concerne la catégorie « {$inspiration->categorie->libelle} » : choisissez un vêtement de cette catégorie, ou votre propre idée."]);
+            }
+            $data['atelier_id'] = $inspiration->atelier_id;
+            $data['idee'] = ($data['idee'] ?? null) ?: $inspiration->ideePreremplie();
+        }
         $demande = null;
 
         return $this->executer(
@@ -64,7 +101,7 @@ class DemandeTransformationController extends Controller
     public function show(Request $request, DemandeTransformation $demande)
     {
         $this->autoriser($request, $demande);
-        $demande->load(['vetement.categorie', 'atelier', 'review']);
+        $demande->load(['vetement.categorie', 'atelier', 'review', 'inspiration']);
 
         return view('front.transformations.show', ['demande' => $demande]);
     }

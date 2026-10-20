@@ -21,7 +21,7 @@ class DemandeTransformation extends Model
     public const PREFIXE = 'TRA';
     public const LIBELLE = 'Transformation';
 
-    protected $fillable = ['vetement_id', 'atelier_id', 'particulier_id', 'idee', 'budget_max', 'date_souhaitee'];
+    protected $fillable = ['vetement_id', 'atelier_id', 'inspiration_id', 'apercu_ia', 'particulier_id', 'idee', 'budget_max', 'date_souhaitee'];
 
     protected $attributes = ['statut' => 'en_attente', 'depot_remis' => false];
 
@@ -30,6 +30,7 @@ class DemandeTransformation extends Model
         static::deleted(function (DemandeTransformation $demande) {
             Photo::delete($demande->photo_avant);
             Photo::delete($demande->photo_apres);
+            Photo::delete($demande->apercu_ia);
         });
     }
 
@@ -47,6 +48,12 @@ class DemandeTransformation extends Model
             'date_fin_traitement' => 'datetime',
             'date_recuperation' => 'datetime',
         ];
+    }
+
+    /** Modèle d'upcycling dont la demande s'inspire (null = idée libre). */
+    public function inspiration(): BelongsTo
+    {
+        return $this->belongsTo(Inspiration::class);
     }
 
     public function atelier(): BelongsTo
@@ -103,6 +110,12 @@ class DemandeTransformation extends Model
     public function photoApresUrl(): ?string
     {
         return Photo::url($this->photo_apres);
+    }
+
+    /** Aperçu généré par l'IA, joint par le particulier comme référence. */
+    public function apercuIaUrl(): ?string
+    {
+        return Photo::url($this->apercu_ia);
     }
 
     public function messageNotification(bool $pourStructure = false): string

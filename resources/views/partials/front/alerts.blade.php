@@ -1,5 +1,10 @@
 @php
-    $success = $success ?? session('success');
+    // Messages de l'application (success) et de Laravel Breeze (status).
+    $success = $success ?? session('success') ?? match (session('status')) {
+        null => null,
+        'verification-link-sent' => 'Un nouveau lien de vérification vient de vous être envoyé.',
+        default => session('status'),
+    };
     $error = $error ?? session('error');
 @endphp
 @if($success)

@@ -15,8 +15,11 @@
                 'Besoin' => $demande->besoin?->titre ?? 'Don libre',
                 'Association' => $demande->association->nom,
                 'Proposé le' => $demande->created_at->format('d/m/Y'),
+                'Avis IA du donateur' => \App\Models\Dons\ControleQualite::VERDICTS[$demande->controle_ia] ?? '—',
             ],
         ])
+        @include('back.dons._orientation')
+        @include('front.dons._evenements', ['espace' => $espace])
         @if($demande->statut === StatutDon::REMIS_BENEFICIAIRE)
         <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="font-display text-lg font-bold">Remise aux bénéficiaires</h2>
@@ -48,8 +51,13 @@
                     @break
                 @case(StatutDon::EN_TRAITEMENT)
                     <form method="POST" action="{{ $action('remettre') }}" class="space-y-4">@csrf
-                        <x-champ label="Bénéficiaires" name="beneficiaire_info" type="textarea" :required="true" placeholder="Ex. Distribution du samedi matin, familles hébergées au centre Montreuil." help="Restez anonyme : pas de nom de bénéficiaire." />
+                        <x-champ label="Bénéficiaires" name="beneficiaire_info" type="textarea" :required="true" :value="$demande->orientation?->remiseProposee()" placeholder="Ex. Distribution du samedi matin, familles hébergées au centre Montreuil." help="Restez anonyme : pas de nom de bénéficiaire." />
                         <x-champ label="Nombre de bénéficiaires" name="nombre_beneficiaires" type="number" :required="true" :value="1" min="1" />
+                        @if(($distributions ?? collect())->isNotEmpty())
+                        <x-champ label="Lors de la distribution" name="distribution_id" type="select" vide="Aucune (remise hors distribution)" :options="$distributions->mapWithKeys(fn ($e) => [$e->id => $e->titre.' — '.$e->debut->translatedFormat('d M, H:i')])" help="Le don apparaîtra dans le bilan de cette distribution." />
+                        @else
+                        <p class="text-xs text-slate-400">Astuce : créez une <a href="{{ route('association.evenements.create') }}" class="font-semibold underline">distribution</a> pour y rattacher vos remises.</p>
+                        @endif
                         <button class="{{ $primaire }}"><i data-lucide="heart" class="h-4 w-4"></i>Marquer comme remis</button>
                     </form>
                     @break

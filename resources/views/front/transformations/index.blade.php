@@ -7,7 +7,8 @@
     $avancement = ['en_attente' => 10, 'acceptee' => 25, 'depot_remis' => 45, 'en_traitement' => 70, 'pret' => 90, 'recupere' => 100, 'refusee' => 0, 'annulee' => 0];
 @endphp
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-    <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="text-sm font-bold text-violet-600">Créer plutôt que jeter</p><h1 class="mt-2 font-display text-4xl font-bold">Mes transformations</h1><p class="mt-2 text-slate-500">Suivez vos projets d'upcycling créatif.</p></div><x-button :href="route('transformations.create')" label="Nouveau projet" icon="scissors" /></div>
+    @include('front.transformations._onglets')
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="text-sm font-bold text-violet-600">Créer plutôt que jeter</p><h1 class="mt-2 font-display text-4xl font-bold">Mes transformations</h1><p class="mt-2 text-slate-500">Suivez vos projets d'upcycling créatif.</p></div><div class="flex flex-wrap gap-3"><x-button :href="route('transformations.idees')" label="Idées avec l’IA" icon="wand-sparkles" variant="secondary" /><x-button :href="route('transformations.create')" label="Nouveau projet" icon="scissors" /></div></div>
     <div class="mb-6 flex flex-wrap gap-2 text-sm font-semibold">
         <a href="{{ route('transformations.index') }}" class="rounded-full px-4 py-2 {{ request('statut') ? 'bg-white text-slate-600 ring-1 ring-slate-200 hover:text-forest-700' : 'bg-forest-600 text-white' }}">Tous</a>
         @foreach(\App\Enums\StatutDemande::cases() as $statut)

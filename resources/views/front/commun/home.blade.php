@@ -15,11 +15,11 @@
                 <x-button :href="route('vetements.create')" label="Ajouter un vêtement" icon="plus" />
                 <a href="{{ route('ateliers.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2.5 text-sm font-semibold hover:bg-white/10">Découvrir les ateliers <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
             </div>
-            <div class="mt-10 flex gap-8 text-sm"><div><strong class="block font-display text-2xl">2 840</strong><span class="text-emerald-100/60">vêtements sauvés</span></div><div><strong class="block font-display text-2xl">48</strong><span class="text-emerald-100/60">partenaires locaux</span></div></div>
+            <div class="mt-10 flex gap-8 text-sm"><div><strong class="block font-display text-2xl">{{ number_format($impact['vetements'], 0, ',', ' ') }}</strong><span class="text-emerald-100/60">vêtements sauvés</span></div><div><strong class="block font-display text-2xl">≈ {{ number_format($impact['co2'], 0, ',', ' ') }} kg</strong><span class="text-emerald-100/60">de CO₂ évités</span></div><div><strong class="block font-display text-2xl">{{ $partenaires }}</strong><span class="text-emerald-100/60">partenaires locaux</span></div></div>
         </div>
         <div class="relative">
             <img src="https://images.unsplash.com/photo-1673201229733-69d19c5c4a87?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&q=85&w=1000" alt="Artisane travaillant sur une machine à coudre" class="h-[480px] w-full rounded-[2rem] object-cover shadow-2xl ring-1 ring-white/10">
-            <div class="absolute -bottom-5 -left-5 rounded-2xl bg-white p-4 text-slate-800 shadow-xl"><div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-100 text-emerald-700"><i data-lucide="sparkles" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Impact cette semaine</p><p class="font-display font-bold">126 kg de textile sauvés</p></div></div></div>
+            <div class="absolute -bottom-5 -left-5 rounded-2xl bg-white p-4 text-slate-800 shadow-xl"><div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-100 text-emerald-700"><i data-lucide="sparkles" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Eau économisée sur TextileCycle</p><p class="font-display font-bold">≈ {{ number_format($impact['eau'], 0, ',', ' ') }} litres</p></div></div></div>
         </div>
     </div>
 </section>

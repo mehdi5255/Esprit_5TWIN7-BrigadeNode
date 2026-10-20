@@ -17,6 +17,8 @@
                 'Atelier' => $demande->atelier->nom,
             ],
         ])
+        @include('front.transformations._inspiration', ['lien' => $espace === 'atelier' && $demande->inspiration ? route('atelier.inspirations.show', $demande->inspiration) : null])
+        @include('front.transformations._apercu-ia')
         @if($demande->produit_final || $demande->photo_avant)
         <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="font-display text-lg font-bold">Produit final</h2>

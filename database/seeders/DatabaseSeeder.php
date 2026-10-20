@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\RolesPermissions;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -21,6 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UtilisateurSeeder::class,        // Tâche commune : comptes de démonstration
             CategorieVetementSeeder::class,  // Module 1 — Vêtements
+            MatiereSeeder::class,            // Module 1 — Catalogue des matières
             AtelierSeeder::class,            // Module 5 — Ateliers & services
             AssociationSeeder::class,        // Module 4 — Associations & besoins
             VetementSeeder::class,           // Module 1 — Vêtements
@@ -28,5 +30,9 @@ class DatabaseSeeder extends Seeder
             TransformationSeeder::class,     // Module 3 — Transformations
             DonSeeder::class,                // Module 4 — Dons
         ]);
+
+        // Rôles et permissions (Spatie) : les événements de modèle étant coupés pendant le seed,
+        // chaque compte est rattaché ici au rôle Spatie correspondant à son type de compte.
+        RolesPermissions::installer();
     }
 }

@@ -32,6 +32,7 @@ class AssociationController extends Controller
         return view('front.dons.associations.show', [
             'association' => Association::avecNote()->with('besoinsActifs.categorie')->find($association->id),
             'reviews' => $association->reviews()->publies()->with('particulier')->latest()->paginate(10),
+            'evenements' => $association->evenements()->aVenir()->orderBy('debut')->take(4)->get(),
         ]);
     }
 

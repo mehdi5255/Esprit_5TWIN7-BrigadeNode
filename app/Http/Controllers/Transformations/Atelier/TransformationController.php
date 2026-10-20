@@ -23,7 +23,7 @@ class TransformationController extends Controller
     public function show(Request $request, DemandeTransformation $demande)
     {
         $this->autoriser($request, $demande);
-        $demande->load(['vetement.categorie', 'atelier', 'particulier', 'review']);
+        $demande->load(['vetement.categorie', 'atelier', 'particulier', 'review', 'inspiration']);
 
         return view('back.transformations.show', ['demande' => $demande, 'espace' => 'atelier']);
     }

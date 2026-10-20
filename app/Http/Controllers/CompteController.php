@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -25,10 +26,23 @@ class CompteController extends Controller
     {
         $user = $request->user();
 
-        $user->update($request->validate([
+        $user->fill($request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user)],
         ]));
+
+        // Nouvelle adresse : elle doit être vérifiée à son tour.
+        $emailChange = $user->isDirty('email');
+        if ($emailChange) {
+            $user->email_verified_at = null;
+        }
+        $user->save();
+
+        if ($emailChange) {
+            $user->sendEmailVerificationNotification();
+
+            return redirect()->route('verification.notice')->with('success', 'Adresse modifiée : confirmez-la avec le lien que nous venons de vous envoyer.');
+        }
 
         return back()->with('success', 'Vos informations ont été mises à jour.');
     }
@@ -43,6 +57,19 @@ class CompteController extends Controller
         $request->user()->update(['password' => $data['password']]);
 
         return back()->with('success', 'Votre mot de passe a été modifié.');
+    }
+
+    /**
+     * Mot de passe actuel oublié : même logique que « Mot de passe oublié » (Breeze),
+     * le lien de réinitialisation (jeton valable 60 minutes) part à l'adresse du compte.
+     */
+    public function envoyerLienReinitialisation(Request $request)
+    {
+        $statut = PasswordBroker::sendResetLink(['email' => $request->user()->email]);
+
+        return $statut === PasswordBroker::RESET_LINK_SENT
+            ? back()->with('success', "Un lien de réinitialisation a été envoyé à {$request->user()->email}. Il expire dans ".config('auth.passwords.users.expire').' minutes.')
+            : back()->with('error', __($statut));
     }
 
     /** Droit à l'effacement : possible tant que le compte n'a pas d'historique de demandes. */

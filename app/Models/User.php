@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\StatutCompte;
 use App\Models\Ateliers\Atelier;
 use App\Models\Dons\Association;
@@ -12,16 +11,21 @@ use App\Models\Transformations\DemandeTransformation;
 use App\Models\Transformations\Review;
 use App\Models\Vetements\Vetement;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+/** Utilisateur de la plateforme. L'adresse e-mail doit être vérifiée avant d'accéder aux espaces (MustVerifyEmail). */
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * Available roles, keyed by stored value.
@@ -32,6 +36,7 @@ class User extends Authenticatable
         'particulier' => 'Particulier',
         'atelier' => 'Atelier',
         'association' => 'Association',
+        'moderateur' => 'Modérateur',
         'admin' => 'Administrateur',
     ];
 
@@ -56,6 +61,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -63,10 +70,21 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    /** Le type de compte (colonne « role ») reste synchronisé avec le rôle Spatie qui porte les permissions. */
+    protected static function booted(): void
+    {
+        static::saved(function (User $user) {
+            if ($user->wasRecentlyCreated || $user->wasChanged('role')) {
+                $user->syncRoles([Role::findOrCreate($user->role, 'web')]);
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'statut' => StatutCompte::class,
         ];
@@ -75,11 +93,6 @@ class User extends Authenticatable
     public function roleLabel(): string
     {
         return self::ROLES[$this->role] ?? $this->role;
-    }
-
-    public function hasRole(string ...$roles): bool
-    {
-        return in_array($this->role, $roles, true);
     }
 
     public function estBloque(): bool
@@ -144,7 +157,7 @@ class User extends Authenticatable
     public function homeRoute(): string
     {
         return match ($this->role) {
-            'admin' => route('admin.dashboard'),
+            'admin', 'moderateur' => route('admin.dashboard'),
             'atelier' => route('atelier.dashboard'),
             'association' => route('association.dashboard'),
             default => route('vetements.index'),

@@ -3,35 +3,39 @@
     $compteur = fn ($relation) => $relation?->where('statut', 'en_attente')->count() ?: null;
     $depots = \App\Support\Depots::pour($user);
 
-    // [icône, libellé, route, motif actif, compteur]
+    // [icône, libellé, route, motif actif, compteur, permission requise (Spatie) ou null]
     $sections = match ($user->role) {
-        'admin' => [
+        'admin', 'moderateur' => [
             'Pilotage' => [
                 ['layout-dashboard', 'Tableau de bord', 'admin.dashboard', 'admin.dashboard', null],
-                ['users', 'Utilisateurs', 'admin.users.index', 'admin.users.*', \App\Models\User::where('statut', 'en_attente')->count() ?: null],
-                ['warehouse', 'Ateliers', 'admin.ateliers.index', 'admin.ateliers.*', null],
-                ['heart-handshake', 'Associations', 'admin.associations.index', 'admin.associations.*', null],
-                ['tags', 'Catégories', 'admin.categories.index', 'admin.categories.*', null],
+                ['users', 'Utilisateurs', 'admin.users.index', 'admin.users.*', \App\Models\User::where('statut', 'en_attente')->count() ?: null, 'gerer-utilisateurs'],
+                ['warehouse', 'Ateliers', 'admin.ateliers.index', 'admin.ateliers.*', null, 'gerer-structures'],
+                ['heart-handshake', 'Associations', 'admin.associations.index', 'admin.associations.*', null, 'gerer-structures'],
+                ['tags', 'Catégories', 'admin.categories.index', 'admin.categories.*', null, 'gerer-catalogue'],
+                ['layers', 'Matières', 'admin.matieres.index', 'admin.matieres.*', null, 'gerer-catalogue'],
+                ['shield-check', 'Rôles et permissions', 'admin.roles.index', 'admin.roles.*', null, 'gerer-roles'],
             ],
             'Supervision' => [
-                ['wrench', 'Réparations', 'admin.reparations.index', 'admin.reparations.*', null],
-                ['scissors', 'Transformations', 'admin.transformations.index', 'admin.transformations.*', null],
-                ['gift', 'Dons', 'admin.dons.index', 'admin.dons.*', null],
-                ['package-check', 'Dépôts', 'admin.depots.index', 'admin.depots.*', $depots->nombreEnRetard() ?: null],
-                ['star', 'Avis', 'admin.reviews.index', 'admin.reviews.*', null],
-                ['file-bar-chart', 'Rapports', 'admin.rapports.index', 'admin.rapports.*', null],
+                ['wrench', 'Réparations', 'admin.reparations.index', 'admin.reparations.*', null, 'superviser-demandes'],
+                ['scissors', 'Transformations', 'admin.transformations.index', 'admin.transformations.*', null, 'superviser-demandes'],
+                ['gift', 'Dons', 'admin.dons.index', 'admin.dons.*', null, 'superviser-demandes'],
+                ['package-check', 'Dépôts', 'admin.depots.index', 'admin.depots.*', $depots->nombreEnRetard() ?: null, 'superviser-demandes'],
+                ['star', 'Avis', 'admin.reviews.index', 'admin.reviews.*', null, 'moderer-avis'],
+                ['file-bar-chart', 'Rapports', 'admin.rapports.index', 'admin.rapports.*', null, 'voir-rapports'],
             ],
         ],
         'atelier' => [
             'Mon atelier' => [
                 ['layout-dashboard', 'Tableau de bord', 'atelier.dashboard', 'atelier.dashboard', null],
                 ['store', 'Profil', 'atelier.profil.edit', 'atelier.profil.*', null],
-                ['sparkles', 'Services', 'atelier.services.index', 'atelier.services.*', null],
+                ['sparkles', 'Services', 'atelier.services.index', 'atelier.services.*', null, 'gerer-services'],
+                ['lightbulb', 'Inspirations', 'atelier.inspirations.index', 'atelier.inspirations.*', null, 'publier-inspirations'],
             ],
             'Demandes' => [
                 ['wrench', 'Réparations', 'atelier.reparations.index', 'atelier.reparations.*', $compteur($user->atelier?->demandesReparation())],
                 ['scissors', 'Transformations', 'atelier.transformations.index', 'atelier.transformations.*', $compteur($user->atelier?->demandesTransformation())],
                 ['package-check', 'Dépôts', 'atelier.depots.index', 'atelier.depots.*', $depots->nombreAttendus() ?: null],
+                ['receipt', 'Factures', 'atelier.factures.index', 'atelier.factures.*', null],
                 ['star', 'Avis reçus', 'atelier.avis.index', 'atelier.avis.*', null],
             ],
         ],
@@ -39,7 +43,8 @@
             'Mon association' => [
                 ['layout-dashboard', 'Tableau de bord', 'association.dashboard', 'association.dashboard', null],
                 ['heart-handshake', 'Profil', 'association.profil.edit', 'association.profil.*', null],
-                ['clipboard-list', 'Besoins', 'association.besoins.index', 'association.besoins.*', null],
+                ['clipboard-list', 'Besoins', 'association.besoins.index', 'association.besoins.*', null, 'gerer-besoins'],
+                ['calendar-days', 'Événements', 'association.evenements.index', 'association.evenements.*', null, 'gerer-evenements'],
             ],
             'Dons' => [
                 ['gift', 'Dons reçus', 'association.dons.index', 'association.dons.*', $compteur($user->association?->demandesDon())],
@@ -48,6 +53,8 @@
             ],
         ],
     };
+    // Seuls les liens autorisés par les permissions du rôle sont affichés (le serveur vérifie aussi chaque page).
+    $sections = collect($sections)->map(fn ($liens) => array_values(array_filter($liens, fn ($lien) => ! isset($lien[5]) || $user->can($lien[5]))))->filter()->all();
 @endphp
 <aside data-sidebar class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col overflow-y-auto bg-ink px-4 py-6 text-white transition-transform lg:translate-x-0">
     <a href="{{ $user->homeRoute() }}" class="mb-8 flex items-center gap-3 px-2">

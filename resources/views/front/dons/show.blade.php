@@ -13,7 +13,9 @@
     @php
         $prochaineEtape = match ($demande->statut) {
             StatutDon::EN_ATTENTE => ['clock', "L'association étudie votre proposition. Vous pouvez encore l'annuler."],
-            StatutDon::ACCEPTEE => ['package', "Don accepté ! Apportez votre vêtement à {$demande->association->nom}" . ($demande->association->adresseComplete() ? ' — '.$demande->association->adresseComplete() : '') . '.'],
+            StatutDon::ACCEPTEE => ($collecte = $demande->collecte())
+                ? ['calendar', "Don accepté ! Apportez votre vêtement à la collecte « {$collecte->titre} », {$collecte->horaire()}, {$collecte->lieu}."]
+                : ['package', "Don accepté ! Apportez votre vêtement à {$demande->association->nom}" . ($demande->association->adresseComplete() ? ' — '.$demande->association->adresseComplete() : '') . '.'],
             StatutDon::DEPOT_REMIS => ['package-check', "L'association a bien reçu votre vêtement. Merci !"],
             StatutDon::EN_TRAITEMENT => ['hand-heart', "Votre don est en préparation pour être remis aux bénéficiaires."],
             default => null,
@@ -21,6 +23,14 @@
     @endphp
     @if($prochaineEtape)
     <div class="mb-6 flex items-center gap-3 rounded-2xl bg-rose-50 p-4 text-sm font-medium text-rose-900"><i data-lucide="{{ $prochaineEtape[0] }}" class="h-5 w-5 shrink-0 text-rose-600"></i>{{ $prochaineEtape[1] }}</div>
+    @endif
+
+    <div class="mb-6">@include('front.dons._evenements', ['espace' => 'particulier'])</div>
+    @if($demande->orientation)
+    <div class="mb-6 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-forest-50 text-forest-700"><i data-lucide="{{ $demande->orientation->icone() }}" class="h-5 w-5"></i></span>
+        <p><span class="font-semibold">Devenir de votre don : {{ $demande->orientation->label() }}.</span> <span class="text-slate-500">{{ $demande->orientation->description() }}</span></p>
+    </div>
     @endif
 
     <div class="grid gap-6 md:grid-cols-2">

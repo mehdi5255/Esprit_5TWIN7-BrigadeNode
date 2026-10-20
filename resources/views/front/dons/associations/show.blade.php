@@ -39,6 +39,18 @@
         @endforelse
     </div>
 
+    @if($evenements->isNotEmpty())
+    <div class="mb-5 mt-12 flex flex-wrap items-end justify-between gap-3"><h2 class="font-display text-2xl font-bold">Prochains rendez-vous</h2><a href="{{ route('evenements.index', ['association' => $association->id]) }}" class="text-sm font-semibold text-forest-700 hover:underline">Tout l'agenda</a></div>
+    <div class="grid gap-4 md:grid-cols-2">
+        @foreach($evenements as $evenement)
+        <a href="{{ route('evenements.show', $evenement) }}" class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-forest-300">
+            <div class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-rose-50 text-center text-rose-700"><div><p class="font-display text-lg font-bold leading-none">{{ $evenement->debut->format('d') }}</p><p class="text-[10px] font-semibold uppercase">{{ $evenement->debut->translatedFormat('M') }}</p></div></div>
+            <div class="min-w-0"><x-badge :label="$evenement->type->label()" :color="$evenement->type->color()" /><p class="mt-1 font-semibold">{{ $evenement->titre }}</p><p class="text-sm text-slate-500">{{ $evenement->debut->format('H:i') }} · {{ $evenement->lieu }}</p></div>
+        </a>
+        @endforeach
+    </div>
+    @endif
+
     <h2 class="mb-5 mt-12 font-display text-2xl font-bold">Avis des donateurs</h2>
     @include('partials.front.avis', ['structure' => $association])
 </section>

@@ -1,10 +1,10 @@
 @extends('layouts.front')
-@section('title', 'Besoins des associations')
+@section('title', 'Solidarité — Besoins des associations')
 @section('meta', 'Consultez les besoins actuels des associations partenaires et donnez utile.')
 @section('content')
 @php $select = 'rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 outline-none focus:border-forest-500'; @endphp
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-    <div class="mb-8 max-w-2xl"><p class="text-sm font-bold text-forest-600">Donner utile</p><h1 class="mt-2 font-display text-4xl font-bold">Besoins des associations</h1><p class="mt-3 text-slate-500">Ce dont les associations ont besoin en ce moment, les plus urgents d'abord.</p></div>
+    @include('front.dons._solidarite')
     <form method="GET" action="{{ route('besoins.index') }}" class="mb-8 flex flex-wrap items-center gap-3">
         <select name="categorie" class="{{ $select }}" aria-label="Catégorie" onchange="this.form.submit()"><option value="">Toutes catégories</option>@foreach($categories as $categorie)<option value="{{ $categorie->id }}" @selected(request('categorie') == $categorie->id)>{{ $categorie->libelle }}</option>@endforeach</select>
         <select name="priorite" class="{{ $select }}" aria-label="Priorité" onchange="this.form.submit()"><option value="">Toutes priorités</option>@foreach(\App\Enums\PrioriteBesoin::cases() as $priorite)<option value="{{ $priorite->value }}" @selected(request('priorite') === $priorite->value)>{{ $priorite->label() }}</option>@endforeach</select>

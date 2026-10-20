@@ -8,6 +8,7 @@ use App\Enums\TypeService;
 use App\Models\Concerns\EstNotable;
 use App\Models\Reparations\DemandeReparation;
 use App\Models\Transformations\DemandeTransformation;
+use App\Models\Transformations\Inspiration;
 use App\Models\User;
 use Database\Factories\AtelierFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -44,6 +45,12 @@ class Atelier extends Model
     public function demandesReparation(): HasMany
     {
         return $this->hasMany(DemandeReparation::class);
+    }
+
+    /** Modèles d'upcycling publiés par l'atelier (module 3). */
+    public function inspirations(): HasMany
+    {
+        return $this->hasMany(Inspiration::class);
     }
 
     public function demandesTransformation(): HasMany

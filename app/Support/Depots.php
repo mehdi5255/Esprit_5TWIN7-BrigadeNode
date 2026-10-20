@@ -40,7 +40,7 @@ class Depots
     public static function pour(User $user, ?string $type = null): self
     {
         [$types, $portee] = match ($user->role) {
-            'admin' => [self::TYPES, null],
+            'admin', 'moderateur' => [self::TYPES, null],
             'atelier' => [array_intersect_key(self::TYPES, array_flip(['reparations', 'transformations'])),
                 fn (Builder $q) => $q->where('atelier_id', $user->atelier?->id)],
             'association' => [array_intersect_key(self::TYPES, array_flip(['dons'])),
@@ -64,9 +64,15 @@ class Depots
     /** Demandes acceptées dont le vêtement n'a pas encore été déposé, les plus anciennes d'abord. */
     public function attendus(): Collection
     {
-        return $this->lignes(fn (Builder $q) => $q->where('statut', 'acceptee'))
+        return $this->lignes(fn (Builder $q) => self::attendu($q))
             ->sortBy(fn ($ligne) => $ligne['demande']->date_acceptation)
             ->values();
+    }
+
+    /** Dépôt attendu : demande acceptée, vêtement pas encore apporté (le devis d'une réparation se fait après le dépôt). */
+    private static function attendu(Builder $q): Builder
+    {
+        return $q->where('statut', 'acceptee');
     }
 
     /** Dépôts confirmés sur les N derniers jours, les plus récents d'abord. */
@@ -79,13 +85,13 @@ class Depots
 
     public function nombreAttendus(): int
     {
-        return $this->compter(fn (Builder $q) => $q->where('statut', 'acceptee'));
+        return $this->compter(fn (Builder $q) => self::attendu($q));
     }
 
     public function nombreEnRetard(): int
     {
         // En retard = plus de DELAI_JOURS jours entiers depuis l'acceptation (même règle que l'affichage).
-        return $this->compter(fn (Builder $q) => $q->where('statut', 'acceptee')->where('date_acceptation', '<=', now()->subDays(self::DELAI_JOURS + 1)));
+        return $this->compter(fn (Builder $q) => self::attendu($q)->where('date_acceptation', '<=', now()->subDays(self::DELAI_JOURS + 1)));
     }
 
     public function statistiques(): array

@@ -24,6 +24,9 @@
     <div class="mb-6 flex items-center gap-3 rounded-2xl bg-violet-50 p-4 text-sm font-medium text-violet-900"><i data-lucide="{{ $prochaineEtape[0] }}" class="h-5 w-5 shrink-0 text-violet-600"></i>{{ $prochaineEtape[1] }}</div>
     @endif
 
+    <div class="mb-6">@include('front.transformations._inspiration', ['lien' => $demande->inspiration?->estVisible() ? route('inspirations.show', $demande->inspiration) : null])</div>
+    @if($demande->apercu_ia)<div class="mb-6">@include('front.transformations._apercu-ia')</div>@endif
+
     <div class="grid gap-6 md:grid-cols-2">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="font-display text-lg font-bold">Mon idée</h2>

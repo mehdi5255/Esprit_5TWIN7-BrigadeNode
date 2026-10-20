@@ -51,6 +51,19 @@
         @endforelse
     </div>
 
+    @if($inspirations->isNotEmpty())
+    <div class="mb-5 mt-12 flex flex-wrap items-end justify-between gap-3"><h2 class="font-display text-2xl font-bold">Ses inspirations</h2><a href="{{ route('inspirations.index', ['atelier' => $atelier->id]) }}" class="text-sm font-semibold text-forest-700 hover:underline">Tout voir</a></div>
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach($inspirations as $inspiration)
+        <a href="{{ route('inspirations.show', $inspiration) }}" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-forest-300">
+            @if($inspiration->photoUrl())<img src="{{ $inspiration->photoUrl() }}" alt="" class="h-36 w-full object-cover">
+            @else<div class="grid h-36 place-items-center bg-violet-50 text-violet-600"><i data-lucide="sparkles" class="h-8 w-8"></i></div>@endif
+            <div class="p-4"><x-badge :label="$inspiration->categorie->libelle" color="blue" /><p class="mt-2 font-display font-bold">{{ $inspiration->titre }}</p><p class="text-sm text-slate-500">{{ $inspiration->prixFormate() }}</p></div>
+        </a>
+        @endforeach
+    </div>
+    @endif
+
     <h2 class="mb-5 mt-12 font-display text-2xl font-bold">Avis clients</h2>
     @include('partials.front.avis', ['structure' => $atelier])
 </section>

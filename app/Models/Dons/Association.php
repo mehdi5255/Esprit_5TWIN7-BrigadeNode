@@ -44,6 +44,12 @@ class Association extends Model
             ->orderByRaw("case priorite when 'urgente' then 1 when 'haute' then 2 when 'moyenne' then 3 else 4 end");
     }
 
+    /** Collectes et distributions organisées par l'association. */
+    public function evenements(): HasMany
+    {
+        return $this->hasMany(Evenement::class);
+    }
+
     public function demandesDon(): HasMany
     {
         return $this->hasMany(DemandeDon::class);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Ateliers;
 use App\Enums\TypeService;
 use App\Http\Controllers\Controller;
 use App\Models\Ateliers\Atelier;
+use App\Models\Ateliers\ConseillerAteliers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -29,6 +30,14 @@ class AtelierController extends Controller
         return view('front.ateliers.index', ['ateliers' => $ateliers]);
     }
 
+    /** Recommandation des ateliers les plus adaptés au besoin décrit (JSON). */
+    public function conseil(Request $request)
+    {
+        $besoin = $request->validate(['besoin' => ['required', 'string', 'min:10', 'max:500']], [], ['besoin' => 'besoin'])['besoin'];
+
+        return response()->json((new ConseillerAteliers)->recommander($besoin));
+    }
+
     public function show(Atelier $atelier)
     {
         abort_unless($atelier->estActif(), 404);
@@ -36,6 +45,7 @@ class AtelierController extends Controller
         return view('front.ateliers.show', [
             'atelier' => Atelier::avecNote()->with(['services' => fn ($q) => $q->where('actif', true)->orderBy('type')])->find($atelier->id),
             'reviews' => $atelier->reviews()->publies()->with('particulier')->latest()->paginate(10),
+            'inspirations' => $atelier->inspirations()->visibles()->with('categorie')->latest()->take(6)->get(),
         ]);
     }
 }

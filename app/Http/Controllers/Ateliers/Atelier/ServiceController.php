@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Ateliers\Atelier;
 
 use App\Enums\TypeService;
 use App\Http\Controllers\Controller;
+use App\Models\Ateliers\AssistantService;
 use App\Models\Ateliers\ServiceAtelier;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,6 +31,18 @@ class ServiceController extends Controller
         $service = $atelier->services()->create($this->validated($request));
 
         return redirect()->route('atelier.services.index')->with('success', "Service « {$service->nom} » créé.");
+    }
+
+    /** Suggestions de l'IA pour la fiche du service, d'après son nom et les prix du marché (JSON). */
+    public function assistant(Request $request)
+    {
+        $atelier = $request->user()->atelier ?? abort(403);
+        $data = $request->validate([
+            'nom' => ['required', 'string', 'min:3', 'max:255'],
+            'type' => ['required', Rule::enum(TypeService::class)],
+        ]);
+
+        return response()->json((new AssistantService)->suggerer($data['nom'], TypeService::from($data['type']), $atelier));
     }
 
     public function show(Request $request, ServiceAtelier $service)

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
@@ -23,7 +24,7 @@ class Vetement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'categorie_id', 'nom', 'matiere', 'taille', 'couleur', 'etat', 'description', 'photo', 'statut'];
+    protected $fillable = ['user_id', 'categorie_id', 'nom', 'matiere', 'poids_grammes', 'composition_estimee', 'taille', 'couleur', 'etat', 'description', 'photo', 'statut'];
 
     protected $attributes = ['statut' => 'disponible'];
 
@@ -45,6 +46,80 @@ class Vetement extends Model
         return [
             'etat' => EtatVetement::class,
             'statut' => StatutVetement::class,
+            'poids_grammes' => 'integer',
+            'composition_estimee' => 'boolean',
+        ];
+    }
+
+    /** Composition : relation N-N avec le pourcentage de chaque matière sur le pivot. */
+    public function matieres(): BelongsToMany
+    {
+        return $this->belongsToMany(Matiere::class)->withPivot('pourcentage')->withTimestamps()->orderByPivot('pourcentage', 'desc');
+    }
+
+    /** Enregistre la composition : [matiere_id => pourcentage]. */
+    public function definirComposition(array $composition): void
+    {
+        $this->matieres()->sync(collect($composition)->map(fn ($pourcentage) => ['pourcentage' => (int) $pourcentage])->all());
+        $this->unsetRelation('matieres');
+    }
+
+    /** « 80 % Coton · 20 % Polyester » */
+    public function compositionTexte(): ?string
+    {
+        return $this->matieres->isEmpty() ? null : $this->matieres->map(fn (Matiere $m) => "{$m->pivot->pourcentage} % {$m->nom}")->join(' · ');
+    }
+
+    /**
+     * Impact de fabrication d'un vêtement équivalent neuf, évité en le gardant en vie :
+     * Σ poids (kg) × pourcentage × facteur de la matière. Null sans poids ou sans composition.
+     *
+     * @return array{co2: float, eau: int}|null
+     */
+    public function impact(): ?array
+    {
+        if (! $this->poids_grammes || $this->matieres->isEmpty()) {
+            return null;
+        }
+
+        $kg = $this->poids_grammes / 1000;
+
+        return [
+            'co2' => round($this->matieres->sum(fn (Matiere $m) => $kg * $m->pivot->pourcentage / 100 * (float) $m->co2_kg_par_kg), 1),
+            'eau' => (int) round($this->matieres->sum(fn (Matiere $m) => $kg * $m->pivot->pourcentage / 100 * $m->eau_litres_par_kg)),
+        ];
+    }
+
+    /** Conseils d'entretien des matières du vêtement. */
+    public function conseilsEntretien(): Collection
+    {
+        return $this->matieres->filter(fn (Matiere $m) => $m->entretien)->mapWithKeys(fn (Matiere $m) => [$m->nom => $m->entretien]);
+    }
+
+    /** Vêtement « sauvé » : au moins une réparation ou transformation récupérée, ou un don remis. */
+    public function scopeSauves(Builder $query): void
+    {
+        $query->where(fn (Builder $q) => $q
+            ->whereHas('demandesReparation', fn ($d) => $d->where('statut', 'recupere'))
+            ->orWhereHas('demandesTransformation', fn ($d) => $d->where('statut', 'recupere'))
+            ->orWhereHas('demandesDon', fn ($d) => $d->where('statut', 'remis_beneficiaire')));
+    }
+
+    /**
+     * Impact économisé par un ensemble de vêtements (ceux d'un particulier, ou toute la plateforme) :
+     * chaque vêtement sauvé compte une fois, même s'il a été réparé plusieurs fois.
+     *
+     * @return array{vetements: int, co2: float, eau: int}
+     */
+    public static function impactEconomise(Builder $vetements): array
+    {
+        $sauves = $vetements->sauves()->with('matieres')->get();
+        $impacts = $sauves->map->impact()->filter();
+
+        return [
+            'vetements' => $sauves->count(),
+            'co2' => round($impacts->sum('co2'), 1),
+            'eau' => (int) $impacts->sum('eau'),
         ];
     }
 

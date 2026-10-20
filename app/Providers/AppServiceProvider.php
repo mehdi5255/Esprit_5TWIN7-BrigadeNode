@@ -9,12 +9,14 @@ use App\Models\Reparations\DemandeReparation;
 use App\Models\Transformations\DemandeTransformation;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Fortify\Fortify;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,7 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Fortify ne fournit que la 2FA : ses routes (connexion, inscription…) feraient doublon avec Breeze.
+        Fortify::ignoreRoutes();
     }
 
     /**
@@ -42,9 +45,19 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Limites anti force brute, comptées séparément pour chaque formulaire.
-        RateLimiter::for('connexion', fn (Request $request) => Limit::perMinute(6)->by(mb_strtolower((string) $request->input('email')).'|'.$request->ip()));
         RateLimiter::for('mot-de-passe', fn (Request $request) => Limit::perMinute(3)->by(mb_strtolower((string) $request->input('email')).'|'.$request->ip()));
+        RateLimiter::for('deux-facteurs', fn (Request $request) => Limit::perMinute(5)->by($request->session()->get('connexion.2fa.id').'|'.$request->ip()));
         RateLimiter::for('inscription', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+
+        // E-mail de vérification de l'adresse, en français (lien signé, valable 60 minutes).
+        VerifyEmail::toMailUsing(fn (User $user, string $lien) => (new MailMessage)
+            ->subject('Confirmez votre adresse e-mail TextileCycle')
+            ->greeting("Bonjour {$user->name},")
+            ->line('Merci de vous être inscrit sur TextileCycle ! Confirmez votre adresse e-mail pour accéder à votre espace.')
+            ->action('Confirmer mon adresse e-mail', $lien)
+            ->line('Ce lien expire dans '.config('auth.verification.expire', 60).' minutes.')
+            ->line('Si vous n’avez pas créé de compte, ignorez simplement cet e-mail.')
+            ->salutation('L’équipe TextileCycle'));
 
         // E-mail de réinitialisation du mot de passe, en français.
         ResetPassword::toMailUsing(fn (User $user, string $token) => (new MailMessage)

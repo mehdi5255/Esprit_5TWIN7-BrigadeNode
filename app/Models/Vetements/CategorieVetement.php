@@ -3,6 +3,7 @@
 namespace App\Models\Vetements;
 
 use App\Models\Dons\BesoinAssociation;
+use App\Models\Transformations\Inspiration;
 use Database\Factories\CategorieVetementFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,6 +28,12 @@ class CategorieVetement extends Model
     public function vetements(): HasMany
     {
         return $this->hasMany(Vetement::class, 'categorie_id');
+    }
+
+    /** Modèles d'upcycling partant de cette catégorie (module 3). */
+    public function inspirations(): HasMany
+    {
+        return $this->hasMany(Inspiration::class, 'categorie_id');
     }
 
     public function besoins(): HasMany

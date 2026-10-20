@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Vetements\CategorieVetement;
+use App\Models\Vetements\Matiere;
 use App\Models\Vetements\Vetement;
 use Illuminate\Database\Seeder;
 
@@ -34,9 +35,34 @@ class VetementSeeder extends Seeder
             );
         }
 
-        // ── Particuliers générés, chacun avec un dressing de 3 à 5 pièces ──
+        // ── Compositions (étiquettes recopiées) ; la Veste en velours reste à compléter pour la démo ──
+        $matieres = Matiere::pluck('id', 'nom');
+        foreach ([
+            'Manteau camel' => [1200, ['Laine' => 80, 'Polyamide' => 20]],
+            'Jean droit indigo' => [650, ['Coton' => 98, 'Élasthanne' => 2]],
+            'Chemise en lin' => [220, ['Lin' => 100]],
+            'Robe fleurie' => [350, ['Viscose' => 100]],
+            'Pull irlandais' => [700, ['Laine' => 100]],
+            'Pull en laine' => [600, ['Laine' => 100]],
+            'Veste en jean' => [900, ['Coton' => 100]],
+            'Doudoune noire' => [900, ['Polyester' => 100], true],
+            'Chemise ample' => [250, ['Coton' => 100]],
+            'Lot de pyjamas enfant' => [300, ['Coton' => 100], true],
+        ] as $nom => $donnees) {
+            [$poids, $composition, $estimee] = $donnees + [2 => false];
+            $vetement = Vetement::firstWhere('nom', $nom);
+            $vetement->update(['poids_grammes' => $poids, 'composition_estimee' => $estimee]);
+            $vetement->definirComposition(collect($composition)->mapWithKeys(fn ($p, $matiere) => [$matieres[$matiere] => $p])->all());
+        }
+
+        // ── Particuliers générés, chacun avec un dressing de 3 à 5 pièces (composition typique de la catégorie) ──
         User::factory(6)->particulier()->create()
-            ->each(fn (User $particulier) => Vetement::factory(fake()->numberBetween(3, 5))->for($particulier)->create());
+            ->each(fn (User $particulier) => Vetement::factory(fake()->numberBetween(3, 5))->for($particulier)->create()
+                ->each(function (Vetement $vetement) {
+                    [$poids, $composition] = Matiere::compositionTypique($vetement->categorie->libelle);
+                    $vetement->update(['poids_grammes' => $poids, 'composition_estimee' => true]);
+                    $vetement->definirComposition($composition);
+                }));
     }
 
     /**

@@ -13,8 +13,7 @@
         @error('categorie_id')<span class="mt-1.5 block text-xs text-red-600">{{ $message }}</span>@enderror
     </label>
 </div>
-<div class="grid gap-5 sm:grid-cols-3">
-    <label class="block"><span class="mb-2 block text-sm font-semibold text-slate-700">Matière</span><input name="matiere" value="{{ old('matiere', $vetement->matiere) }}" placeholder="Ex. Coton" class="{{ $input }} border-slate-200"></label>
+<div class="grid gap-5 sm:grid-cols-2">
     <label class="block"><span class="mb-2 block text-sm font-semibold text-slate-700">Taille</span>
         <input name="taille" list="tailles" value="{{ old('taille', $vetement->taille) }}" placeholder="Ex. M, 38, 10 ans" class="{{ $input }} border-slate-200">
         <datalist id="tailles">@foreach(['XS','S','M','L','XL','XXL','Unique'] as $taille)<option value="{{ $taille }}">@endforeach</datalist>
@@ -27,6 +26,7 @@
     </select>
     @error('etat')<span class="mt-1.5 block text-xs text-red-600">{{ $message }}</span>@enderror
 </label>
+@include('front.vetements._composition')
 <label class="block"><span class="mb-2 block text-sm font-semibold text-slate-700">Description</span><textarea name="description" rows="4" class="{{ $input }} border-slate-200" placeholder="Particularités, défauts, histoire de la pièce...">{{ old('description', $vetement->description) }}</textarea></label>
 <label class="grid cursor-pointer place-items-center rounded-2xl border-2 border-dashed {{ $errors->has('photo') ? 'border-red-300' : 'border-slate-200' }} px-6 py-8 text-center hover:border-forest-400 hover:bg-forest-50">
     <img data-preview src="{{ $vetement->photoUrl() }}" alt="" class="mb-3 h-40 rounded-xl object-cover" @if(! $vetement->photoUrl()) hidden @endif>
