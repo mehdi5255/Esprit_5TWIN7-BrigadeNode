@@ -1,10 +1,10 @@
 # Lancer TextileCycle avec l'image publiée sur Docker Hub, et une base MySQL.
-#   1. Remplacer « mehdi5255 » par le compte Docker Hub du projet si besoin
+#   1. Remplacer « mehdi002 » par le compte Docker Hub du projet si besoin
 #   2. docker compose up -d       → http://localhost:8080
 #   3. Données de démo (une fois) : docker compose exec app php artisan db:seed --force
 services:
   app:
-    image: ${DOCKERHUB_USERNAME:-mehdi5255}/textilecycle:latest
+    image: ${DOCKERHUB_USERNAME:-mehdi002}/textilecycle:latest
     ports:
       - "8080:80"
     environment:
