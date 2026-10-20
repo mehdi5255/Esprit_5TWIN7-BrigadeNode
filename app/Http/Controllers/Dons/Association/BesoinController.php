@@ -25,7 +25,7 @@ class BesoinController extends Controller
 
     public function create()
     {
-        return view('back.dons.besoins.create', ['besoin' => new BesoinAssociation(), 'categories' => CategorieVetement::actives()->get()]);
+        return view('back.dons.besoins.create', ['besoin' => new BesoinAssociation, 'categories' => CategorieVetement::actives()->get()]);
     }
 
     public function store(Request $request)

@@ -7,13 +7,14 @@ use App\Enums\TypeEvenement;
 use App\Http\Controllers\Concerns\ExecuteDesTransitions;
 use App\Http\Controllers\Controller;
 use App\Models\Dons\Association;
-use App\Models\Dons\ControleQualite;
 use App\Models\Dons\BesoinAssociation;
+use App\Models\Dons\ControleQualite;
 use App\Models\Dons\DemandeDon;
 use App\Models\Dons\Evenement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class DemandeDonController extends Controller
 {
@@ -67,7 +68,7 @@ class DemandeDonController extends Controller
         // Un besoin rattaché à une catégorie n'accepte que les vêtements de cette catégorie.
         if (($besoin = isset($data['besoin_id']) ? BesoinAssociation::with('categorie')->find($data['besoin_id']) : null)
             && $message = ControleQualite::incompatibilite($vetement, $besoin)) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['besoin_id' => $message]);
+            throw ValidationException::withMessages(['besoin_id' => $message]);
         }
         $collecte = isset($data['collecte_id']) ? Evenement::find($data['collecte_id']) : null;
         unset($data['collecte_id']);
@@ -81,7 +82,9 @@ class DemandeDonController extends Controller
                 });
             },
             'Merci ! Votre proposition de don a été envoyée à l’association.',
-            function () use (&$demande) { return route('dons.show', $demande); },
+            function () use (&$demande) {
+                return route('dons.show', $demande);
+            },
         );
     }
 
@@ -141,7 +144,7 @@ class DemandeDonController extends Controller
         ]);
         if (($besoin = isset($data['besoin_id']) ? BesoinAssociation::with('categorie')->find($data['besoin_id']) : null)
             && $message = ControleQualite::incompatibilite($demande->vetement->loadMissing('categorie'), $besoin)) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['besoin_id' => $message]);
+            throw ValidationException::withMessages(['besoin_id' => $message]);
         }
 
         return $this->executer(fn () => $demande->modifier($data), 'Votre proposition de don a été modifiée.', route('dons.show', $demande));

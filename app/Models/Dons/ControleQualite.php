@@ -30,8 +30,9 @@ class ControleQualite
     /**
      * Avec un besoin choisi, vérifie aussi que le vêtement y correspond (catégorie, puis titre et description par l'IA).
      *
+     * Renvoie null si l'IA est indisponible.
+     *
      * @return array{verdict: string, verdict_libelle: string, etat_observe: string, defauts: string[], conseil: string, besoin: ?array}|array{erreur: string}|null
-     *         null si l'IA est indisponible
      */
     public function verifier(Vetement $vetement, ?UploadedFile $photo = null, ?BesoinAssociation $besoin = null): ?array
     {

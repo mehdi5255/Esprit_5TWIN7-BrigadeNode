@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[UseFactory(AtelierFactory::class)]
 class Atelier extends Model
 {
-    use HasFactory, EstNotable;
+    use EstNotable, HasFactory;
 
     protected $fillable = ['responsable_id', 'nom', 'specialite', 'description', 'adresse', 'code_postal', 'ville', 'telephone', 'email', 'horaires', 'logo'];
 

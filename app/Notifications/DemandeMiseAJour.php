@@ -11,9 +11,7 @@ use Illuminate\Notifications\Notification;
 /** Changement d'étape d'une demande : au particulier, ou à la structure pour une nouvelle demande. */
 class DemandeMiseAJour extends Notification
 {
-    public function __construct(public Model $demande, public bool $pourStructure = false)
-    {
-    }
+    public function __construct(public Model $demande, public bool $pourStructure = false) {}
 
     public function via(object $notifiable): array
     {

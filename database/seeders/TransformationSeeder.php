@@ -45,7 +45,9 @@ class TransformationSeeder extends Seeder
         $d->accepter();
 
         $d = DemandeTransformation::creer(Vetement::firstWhere('nom', 'Chemise ample'), ['atelier_id' => $refil->id, 'idee' => 'Faire un top court à partir de cette chemise trop grande.', 'budget_max' => 40]);
-        $d->accepter(); $d->confirmerDepot(); $d->demarrerTraitement();
+        $d->accepter();
+        $d->confirmerDepot();
+        $d->demarrerTraitement();
         $d->terminer(35, 'Top court à manches bouffantes, boutonnage conservé, ourlet roulotté.');
         $d->confirmerRecuperation();
         Review::factory()->pourDemande($d)->create(['note' => 4, 'commentaire' => 'Une transformation créative, un peu plus longue que prévu mais le résultat est superbe.']);

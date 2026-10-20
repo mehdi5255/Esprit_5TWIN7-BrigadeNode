@@ -49,15 +49,19 @@ class ReparationSeeder extends Seeder
 
         // Accepté, déposé, diagnostiqué, devis accepté : réparation en cours.
         $d = $creer('Jean droit indigo', TypeReparation::COUTURE, "La couture de l'entrejambe est décousue sur 5 cm.", 25);
-        $d->accepter(); $d->confirmerDepot();
+        $d->accepter();
+        $d->confirmerDepot();
         $d->etablirDevis(['diagnostic' => 'Couture entrejambe lâchée, tissu sain autour.'], ['main_oeuvre' => 15, 'delai_jours' => 3]);
-        $d->accepterDevis(); $d->demarrerTraitement();
+        $d->accepterDevis();
+        $d->demarrerTraitement();
 
         // Parcours complet : devis → facture avec supplément → paiement → garantie active (Lina peut l'utiliser en démo).
         $d = $creer('Manteau camel', TypeReparation::FERMETURE, 'La fermeture éclair se bloque à mi-hauteur.', 40);
-        $d->accepter(); $d->confirmerDepot();
+        $d->accepter();
+        $d->confirmerDepot();
         $d->etablirDevis(['diagnostic' => 'Curseur de fermeture usé, glissière en bon état.'], ['main_oeuvre' => 30, 'delai_jours' => 5]);
-        $d->accepterDevis(); $d->demarrerTraitement();
+        $d->accepterDevis();
+        $d->demarrerTraitement();
         $d->terminer(
             ['supplement' => 2.5, 'motif_supplement' => 'Curseur renforcé en métal, plus résistant que le modèle prévu.'],
             ['actions_realisees' => 'Remplacement du curseur et graissage de la fermeture.', 'pieces_utilisees' => '1 curseur métal n°5', 'duree_reelle' => 45],
@@ -67,7 +71,8 @@ class ReparationSeeder extends Seeder
 
         // Déposée et diagnostiquée : Lina doit accepter ou refuser le devis (démo particulier).
         $d = $creer('Chemise en lin', TypeReparation::BOUTON, 'Deux boutons manquants au niveau du col.', 10);
-        $d->accepter(); $d->confirmerDepot();
+        $d->accepter();
+        $d->confirmerDepot();
         $d->etablirDevis(['diagnostic' => 'Deux boutons manquants au col, boutonnières en bon état.'], ['main_oeuvre' => 6, 'delai_jours' => 2]);
 
         // En attente : Fil Rouge doit accepter la demande (démo atelier).
@@ -81,9 +86,11 @@ class ReparationSeeder extends Seeder
 
         // Prête : facture émise, à payer à la récupération.
         $d = $creer('Pull en laine', TypeReparation::TROU, 'Petit trou au coude gauche.', 20);
-        $d->accepter(); $d->confirmerDepot();
+        $d->accepter();
+        $d->confirmerDepot();
         $d->etablirDevis(['diagnostic' => 'Trou de 1 cm, maille filée autour.'], ['main_oeuvre' => 15, 'delai_jours' => 4]);
-        $d->accepterDevis(); $d->demarrerTraitement();
+        $d->accepterDevis();
+        $d->demarrerTraitement();
         $d->terminer([], ['actions_realisees' => 'Reprise en maille avec laine assortie.', 'duree_reelle' => 60]);
 
         $d = $creer('Veste en jean', TypeReparation::RETOUCHE, 'Raccourcir les manches de 3 cm.');
@@ -111,5 +118,4 @@ class ReparationSeeder extends Seeder
         $d->etablirDevis(['diagnostic' => 'Doublure entièrement à remplacer.'], ['main_oeuvre' => 45]);
         $d->refuserDevis();
     }
-
 }

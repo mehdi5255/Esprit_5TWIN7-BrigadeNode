@@ -79,7 +79,7 @@ class Gemini
     /**
      * Génère une image à partir d'une consigne et d'images de départ.
      *
-     * @return array{mime: string, data: string}|null  l'image générée (contenu binaire)
+     * @return array{mime: string, data: string}|null l'image générée (contenu binaire)
      */
     public static function image(string $consigne, array $images = []): ?array
     {

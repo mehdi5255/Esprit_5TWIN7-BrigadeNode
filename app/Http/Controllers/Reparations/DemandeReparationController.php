@@ -62,9 +62,13 @@ class DemandeReparationController extends Controller
         $demande = null;
 
         return $this->executer(
-            function () use ($vetement, $data, &$demande) { $demande = DemandeReparation::creer($vetement, $data); },
+            function () use ($vetement, $data, &$demande) {
+                $demande = DemandeReparation::creer($vetement, $data);
+            },
             'Votre demande a été envoyée à l’atelier.',
-            function () use (&$demande) { return route('reparations.show', $demande); },
+            function () use (&$demande) {
+                return route('reparations.show', $demande);
+            },
         );
     }
 
@@ -127,9 +131,13 @@ class DemandeReparationController extends Controller
         $retour = null;
 
         return $this->executer(
-            function () use ($garantie, $description, &$retour) { $retour = DemandeReparation::ouvrirRetour($garantie, $description); },
+            function () use ($garantie, $description, &$retour) {
+                $retour = DemandeReparation::ouvrirRetour($garantie, $description);
+            },
             'Retour sous garantie envoyé à l’atelier.',
-            function () use (&$retour) { return route('reparations.show', $retour); },
+            function () use (&$retour) {
+                return route('reparations.show', $retour);
+            },
         );
     }
 

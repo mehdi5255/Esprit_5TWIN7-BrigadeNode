@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 trait ListeDesDemandes
 {
     /**
-     * @param  string  $type    reparations | transformations | dons
+     * @param  string  $type  reparations | transformations | dons
      * @param  string  $espace  admin | atelier | association
      */
     protected function liste(Request $request, Builder $base, string $type, string $espace)

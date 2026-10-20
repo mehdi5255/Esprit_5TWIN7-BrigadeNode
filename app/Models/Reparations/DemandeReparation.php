@@ -29,9 +29,10 @@ use Illuminate\Support\Facades\DB;
 #[UseFactory(DemandeReparationFactory::class)]
 class DemandeReparation extends Model
 {
-    use HasFactory, AUnWorkflow;
+    use AUnWorkflow, HasFactory;
 
     public const PREFIXE = 'REP';
+
     public const LIBELLE = 'Réparation';
 
     protected $fillable = ['vetement_id', 'atelier_id', 'garantie_id', 'particulier_id', 'type_reparation', 'description', 'photo_probleme', 'budget_max', 'date_souhaitee'];

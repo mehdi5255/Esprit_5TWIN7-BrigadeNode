@@ -4,7 +4,9 @@
 
 use App\Models\Reparations\DemandeReparation;
 use App\Models\User;
+use App\Support\Depots;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
@@ -137,7 +139,7 @@ test('la page Dépôts attend les réparations acceptées, pas celles déjà dé
     $velours->accepter();
     $chemise = ($this->demandeDe)('Chemise en lin');
 
-    $attendus = \App\Support\Depots::pour($this->filRouge)->attendus()->pluck('demande.id');
+    $attendus = Depots::pour($this->filRouge)->attendus()->pluck('demande.id');
     expect($attendus)->toContain($velours->id)->not->toContain($chemise->id);
 });
 
@@ -158,13 +160,13 @@ test('aide au chiffrage : estimation à partir des devis passés comparables', f
 
     // Avec une clé Gemini, l'IA affine le montant et l'explique (réponse simulée : aucun appel réel en test).
     config(['services.gemini.key' => 'cle-de-test']);
-    \Illuminate\Support\Facades\Http::fakeSequence('generativelanguage.googleapis.com/*')
+    Http::fakeSequence('generativelanguage.googleapis.com/*')
         ->push(['candidates' => [['content' => ['parts' => [['text' => json_encode(['montant' => 24.3, 'min' => 20, 'max' => 30, 'explication' => 'Remplacement du curseur, proche de vos devis.'])]]]]]])
         ->push('quota', 429);
     $ia = $this->actingAs($this->filRouge)->post(route('atelier.reparations.estimation', $demande), ['diagnostic' => 'Fermeture éclair cassée.'])->json();
     expect($ia['base'])->toBe('gemini')->and($ia['montant'])->toEqual(24.5)
         ->and($ia['explication'])->toContain('curseur')->and($ia['comparables'])->not->toBeEmpty();
-    \Illuminate\Support\Facades\Http::assertSent(fn ($requete) => str_contains($question = $requete['contents'][0]['parts'][0]['text'], 'Fermeture éclair cassée.')
+    Http::assertSent(fn ($requete) => str_contains($question = $requete['contents'][0]['parts'][0]['text'], 'Fermeture éclair cassée.')
         && ! str_contains($question, 'Fil Rouge'));
 
     // Gemini en panne : on retombe sur l'estimation statistique.

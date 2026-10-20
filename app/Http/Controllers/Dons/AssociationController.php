@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dons;
 use App\Http\Controllers\Controller;
 use App\Models\Dons\Association;
 use App\Models\Dons\BesoinAssociation;
+use App\Models\Vetements\CategorieVetement;
 use Illuminate\Http\Request;
 
 class AssociationController extends Controller
@@ -51,7 +52,7 @@ class AssociationController extends Controller
 
         return view('front.dons.besoins.index', [
             'besoins' => $besoins,
-            'categories' => \App\Models\Vetements\CategorieVetement::actives()->get(),
+            'categories' => CategorieVetement::actives()->get(),
         ]);
     }
 }

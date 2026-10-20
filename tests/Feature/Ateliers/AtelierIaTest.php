@@ -2,6 +2,7 @@
 
 // Module 5 — IA des ateliers : « Quel atelier pour mon besoin ? » et assistant de création de service (Gemini simulé).
 
+use App\Enums\TypeService;
 use App\Models\Ateliers\AssistantService;
 use App\Models\Ateliers\Atelier;
 use App\Models\User;
@@ -64,7 +65,7 @@ test('l’assistant de service calcule le marché à partir des autres ateliers,
         ['type' => 'reparation', 'nom' => 'Remplacement de fermeture', 'prix' => 18, 'duree' => 40, 'delai_jours' => 3],
         ['type' => 'reparation', 'nom' => 'Remplacement fermeture éclair veste', 'prix' => 24, 'duree' => 50, 'delai_jours' => 5],
     ]);
-    $similaires = $assistant->similaires('Remplacement de fermeture éclair', \App\Enums\TypeService::REPARATION, $atelier);
+    $similaires = $assistant->similaires('Remplacement de fermeture éclair', TypeService::REPARATION, $atelier);
 
     expect($similaires)->not->toBeEmpty()
         ->and($similaires->pluck('atelier_id'))->not->toContain($atelier->id)

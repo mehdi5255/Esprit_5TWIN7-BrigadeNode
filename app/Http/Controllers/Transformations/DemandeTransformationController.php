@@ -92,9 +92,13 @@ class DemandeTransformationController extends Controller
         $demande = null;
 
         return $this->executer(
-            function () use ($vetement, $data, &$demande) { $demande = DemandeTransformation::creer($vetement, $data); },
+            function () use ($vetement, $data, &$demande) {
+                $demande = DemandeTransformation::creer($vetement, $data);
+            },
             'Votre projet a été envoyé à l’atelier.',
-            function () use (&$demande) { return route('transformations.show', $demande); },
+            function () use (&$demande) {
+                return route('transformations.show', $demande);
+            },
         );
     }
 

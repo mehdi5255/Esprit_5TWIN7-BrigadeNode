@@ -37,7 +37,7 @@ class VetementController extends Controller
     public function create()
     {
         return view('front.vetements.create', [
-            'vetement' => new Vetement(),
+            'vetement' => new Vetement,
             'categories' => CategorieVetement::actives()->get(),
         ] + $this->donneesComposition());
     }
@@ -117,7 +117,7 @@ class VetementController extends Controller
     /**
      * Valide le vêtement et sa composition.
      *
-     * @return array{0: array, 1: array<int, int>}  [données du vêtement, [matiere_id => pourcentage]]
+     * @return array{0: array, 1: array<int, int>} [données du vêtement, [matiere_id => pourcentage]]
      */
     private function validated(Request $request): array
     {

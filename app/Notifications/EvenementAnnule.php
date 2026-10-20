@@ -9,9 +9,7 @@ use Illuminate\Notifications\Notification;
 /** Collecte annulée : le particulier doit déposer son don au local de l'association. */
 class EvenementAnnule extends Notification
 {
-    public function __construct(public Evenement $evenement, public DemandeDon $demande)
-    {
-    }
+    public function __construct(public Evenement $evenement, public DemandeDon $demande) {}
 
     public function via(object $notifiable): array
     {

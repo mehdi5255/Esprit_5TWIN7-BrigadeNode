@@ -31,12 +31,15 @@ class DonSeeder extends Seeder
         // Déposé à la collecte de rentrée, remis lors de la distribution du samedi : le don passe par deux événements (N-N).
         $d = DemandeDon::creer(Vetement::firstWhere('nom', 'Doudoune noire'), ['association_id' => $vestiaire->id, 'besoin_id' => $besoinChaud->id, 'message' => 'Doudoune portée un hiver, lavée.']);
         $d->evenements()->attach($collectePassee);
-        $d->accepter(); $d->confirmerDepot(); $d->preparer();
+        $d->accepter();
+        $d->confirmerDepot();
+        $d->preparer();
         $d->remettre('Distribution du samedi matin au centre d’accueil de jour.', 1, $distributionPassee);
         Review::factory()->pourDemande($d)->create(['note' => 5, 'commentaire' => 'Accueil adorable et suivi transparent, merci pour votre travail !']);
 
         $d = DemandeDon::creer(Vetement::firstWhere('nom', 'Lot de pyjamas enfant'), ['association_id' => $enfance->id, 'besoin_id' => $enfance->besoins()->value('id')]);
-        $d->accepter(); $d->confirmerDepot();
+        $d->accepter();
+        $d->confirmerDepot();
 
         // Lina dépose son pull lors de la grande collecte d'hiver (en attente d'acceptation).
         $d = DemandeDon::creer(Vetement::firstWhere('nom', 'Pull irlandais'), ['association_id' => $vestiaire->id, 'besoin_id' => $besoinChaud->id, 'message' => 'Pull chaud en très bon état.']);

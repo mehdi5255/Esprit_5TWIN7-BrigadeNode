@@ -32,9 +32,7 @@ class Depots
      * @param  array<string, array>  $types  types de demandes suivis
      * @param  \Closure|null  $portee  restreint les demandes à une structure (null = tout, pour l'admin)
      */
-    private function __construct(private array $types, private ?\Closure $portee)
-    {
-    }
+    private function __construct(private array $types, private ?\Closure $portee) {}
 
     /** Dépôts visibles par l'utilisateur, éventuellement filtrés sur un type (reparations, transformations, dons). */
     public static function pour(User $user, ?string $type = null): self

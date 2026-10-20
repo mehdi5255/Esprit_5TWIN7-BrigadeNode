@@ -16,9 +16,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[UseFactory(DemandeTransformationFactory::class)]
 class DemandeTransformation extends Model
 {
-    use HasFactory, AUnWorkflow;
+    use AUnWorkflow, HasFactory;
 
     public const PREFIXE = 'TRA';
+
     public const LIBELLE = 'Transformation';
 
     protected $fillable = ['vetement_id', 'atelier_id', 'inspiration_id', 'apercu_ia', 'particulier_id', 'idee', 'budget_max', 'date_souhaitee'];

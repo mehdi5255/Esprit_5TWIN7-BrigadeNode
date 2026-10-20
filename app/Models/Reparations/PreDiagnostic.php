@@ -19,8 +19,9 @@ class PreDiagnostic
     public const GRAVITES = ['légère', 'moyenne', 'importante'];
 
     /**
+     * Renvoie null si l'IA est indisponible.
+     *
      * @return array{type_reparation: string, type_libelle: string, description: string, gravite: string, conseil: ?string, fourchette: ?array}|array{erreur: string}|null
-     *         null si l'IA est indisponible
      */
     public function analyser(UploadedFile $photo, ?Vetement $vetement = null, ?int $atelierId = null): ?array
     {

@@ -28,7 +28,7 @@ class InspirationController extends Controller
     {
         $this->exigerTransformation($request);
 
-        return view('back.transformations.inspirations.create', ['inspiration' => new Inspiration(), 'categories' => CategorieVetement::actives()->get()]);
+        return view('back.transformations.inspirations.create', ['inspiration' => new Inspiration, 'categories' => CategorieVetement::actives()->get()]);
     }
 
     public function store(Request $request)

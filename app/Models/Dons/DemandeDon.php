@@ -19,9 +19,10 @@ use Illuminate\Support\Facades\DB;
 #[UseFactory(DemandeDonFactory::class)]
 class DemandeDon extends Model
 {
-    use HasFactory, AUnWorkflow;
+    use AUnWorkflow, HasFactory;
 
     public const PREFIXE = 'DON';
+
     public const LIBELLE = 'Don';
 
     protected $fillable = ['vetement_id', 'association_id', 'besoin_id', 'particulier_id', 'message', 'controle_ia'];

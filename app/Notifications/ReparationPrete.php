@@ -9,9 +9,7 @@ use Illuminate\Notifications\Notification;
 /** Module 2 — E-mail au particulier quand son vêtement réparé est prêt à être récupéré. */
 class ReparationPrete extends Notification
 {
-    public function __construct(public DemandeReparation $demande)
-    {
-    }
+    public function __construct(public DemandeReparation $demande) {}
 
     public function via(object $notifiable): array
     {

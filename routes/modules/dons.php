@@ -7,10 +7,10 @@ use App\Http\Controllers\Dons\Association\DashboardController;
 use App\Http\Controllers\Dons\Association\DonController;
 use App\Http\Controllers\Dons\Association\EvenementController;
 use App\Http\Controllers\Dons\Association\GeocodageController;
-use App\Http\Controllers\Dons\EvenementController as EvenementPublicController;
 use App\Http\Controllers\Dons\Association\ProfilController;
 use App\Http\Controllers\Dons\AssociationController;
 use App\Http\Controllers\Dons\DemandeDonController;
+use App\Http\Controllers\Dons\EvenementController as EvenementPublicController;
 use Illuminate\Support\Facades\Route;
 
 // Pages publiques

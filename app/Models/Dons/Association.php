@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[UseFactory(AssociationFactory::class)]
 class Association extends Model
 {
-    use HasFactory, EstNotable;
+    use EstNotable, HasFactory;
 
     protected $fillable = ['responsable_id', 'nom', 'domaine_action', 'description', 'adresse', 'code_postal', 'ville', 'telephone', 'email', 'logo'];
 
