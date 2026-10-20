@@ -41,7 +41,9 @@ class CompteController extends Controller
         if ($emailChange) {
             $user->sendEmailVerificationNotification();
 
-            return redirect()->route('verification.notice')->with('success', 'Adresse modifiée : confirmez-la avec le lien que nous venons de vous envoyer.');
+            return $user->echecEnvoiVerification
+                ? redirect()->route('verification.notice')->with('error', 'Adresse modifiée, mais l’e-mail de vérification n’a pas pu être envoyé pour le moment. Réessayez dans quelques minutes avec « Renvoyer le lien ».')
+                : redirect()->route('verification.notice')->with('success', 'Adresse modifiée : confirmez-la avec le lien que nous venons de vous envoyer.');
         }
 
         return back()->with('success', 'Vos informations ont été mises à jour.');
@@ -65,7 +67,13 @@ class CompteController extends Controller
      */
     public function envoyerLienReinitialisation(Request $request)
     {
-        $statut = PasswordBroker::sendResetLink(['email' => $request->user()->email]);
+        try {
+            $statut = PasswordBroker::sendResetLink(['email' => $request->user()->email]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'L’e-mail n’a pas pu être envoyé pour le moment. Réessayez dans quelques minutes.');
+        }
 
         return $statut === PasswordBroker::RESET_LINK_SENT
             ? back()->with('success', "Un lien de réinitialisation a été envoyé à {$request->user()->email}. Il expire dans ".config('auth.passwords.users.expire').' minutes.')

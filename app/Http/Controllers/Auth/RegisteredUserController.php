@@ -68,6 +68,10 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        if ($user->echecEnvoiVerification) {
+            return redirect(route('dashboard', absolute: false))->with('error', 'Compte créé, mais l’e-mail de vérification n’a pas pu être envoyé pour le moment. Réessayez dans quelques minutes avec « Renvoyer le lien ».');
+        }
+
         return redirect(route('dashboard', absolute: false))->with('success', $estPro
             ? 'Bienvenue ! Confirmez votre adresse e-mail, puis complétez votre profil : votre compte sera visible dès sa validation par l’administration.'
             : 'Bienvenue sur TextileCycle ! Confirmez votre adresse e-mail pour commencer.');

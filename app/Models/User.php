@@ -95,6 +95,24 @@ class User extends Authenticatable implements MustVerifyEmail
         return self::ROLES[$this->role] ?? $this->role;
     }
 
+    /** Vrai si le dernier envoi de l'e-mail de vérification a échoué (serveur d'e-mails injoignable…). */
+    public bool $echecEnvoiVerification = false;
+
+    /**
+     * Envoi de l'e-mail de vérification (MustVerifyEmail) : un échec d'envoi ne doit jamais faire
+     * échouer l'inscription. Il est signalé dans les journaux, et l'utilisateur peut renvoyer le lien.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        try {
+            parent::sendEmailVerificationNotification();
+            $this->echecEnvoiVerification = false;
+        } catch (\Throwable $e) {
+            report($e);
+            $this->echecEnvoiVerification = true;
+        }
+    }
+
     public function estBloque(): bool
     {
         return $this->statut === StatutCompte::BLOQUE;
