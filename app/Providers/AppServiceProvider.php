@@ -14,13 +14,9 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Fortify;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
-use Symfony\Component\Mailer\Transport\Dsn;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,10 +34,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // E-mails par l'API de Brevo (HTTPS) : l'hébergeur Render bloque l'envoi par SMTP sur son offre gratuite.
-        Mail::extend('brevo', fn () => (new BrevoTransportFactory(null, HttpClient::create()))
-            ->create(new Dsn('brevo+api', 'default', config('services.brevo.key'))));
-
         // Noms courts stockés dans les colonnes polymorphes (reviews, notifications).
         Relation::enforceMorphMap([
             'user' => User::class,

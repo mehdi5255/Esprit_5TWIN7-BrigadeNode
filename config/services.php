@@ -37,10 +37,6 @@ return [
         'image_model' => env('GEMINI_IMAGE_MODEL'),
     ],
 
-    'brevo' => [
-        'key' => env('BREVO_API_KEY'),
-    ],
-
     'cloudflare' => [
         'account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
         'token' => env('CLOUDFLARE_API_TOKEN'),
