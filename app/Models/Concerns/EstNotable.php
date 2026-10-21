@@ -3,7 +3,8 @@
 namespace App\Models\Concerns;
 
 use App\Enums\StatutReview;
-use App\Models\Review;
+use App\Enums\StatutStructure;
+use App\Models\Transformations\Review;
 use App\Support\Photo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -52,11 +53,11 @@ trait EstNotable
 
     public function estActif(): bool
     {
-        return $this->statut === \App\Enums\StatutStructure::ACTIF;
+        return $this->statut === StatutStructure::ACTIF;
     }
 
     public function scopeActifs(Builder $query): void
     {
-        $query->where('statut', \App\Enums\StatutStructure::ACTIF)->orderBy('nom');
+        $query->where('statut', StatutStructure::ACTIF)->orderBy('nom');
     }
 }

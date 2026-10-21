@@ -2,9 +2,9 @@
 
 namespace App\Support;
 
-use App\Models\DemandeDon;
-use App\Models\DemandeReparation;
-use App\Models\DemandeTransformation;
+use App\Models\Dons\DemandeDon;
+use App\Models\Reparations\DemandeReparation;
+use App\Models\Transformations\DemandeTransformation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -32,22 +32,19 @@ class Depots
      * @param  array<string, array>  $types  types de demandes suivis
      * @param  \Closure|null  $portee  restreint les demandes à une structure (null = tout, pour l'admin)
      */
-    private function __construct(private array $types, private ?\Closure $portee)
-    {
-    }
+    private function __construct(private array $types, private ?\Closure $portee) {}
 
     /** Dépôts visibles par l'utilisateur, éventuellement filtrés sur un type (reparations, transformations, dons). */
     public static function pour(User $user, ?string $type = null): self
     {
         [$types, $portee] = match ($user->role) {
-            'admin' => [self::TYPES, null],
+            'admin', 'moderateur' => [self::TYPES, null],
             'atelier' => [array_intersect_key(self::TYPES, array_flip(['reparations', 'transformations'])),
                 fn (Builder $q) => $q->where('atelier_id', $user->atelier?->id)],
             'association' => [array_intersect_key(self::TYPES, array_flip(['dons'])),
                 fn (Builder $q) => $q->where('association_id', $user->association?->id)],
             default => [[], null],
         };
-        $types = Modules::filtrer($types); // les clés sont aussi les noms des modules
 
         if ($type && isset($types[$type])) {
             $types = [$type => $types[$type]];
@@ -65,9 +62,15 @@ class Depots
     /** Demandes acceptées dont le vêtement n'a pas encore été déposé, les plus anciennes d'abord. */
     public function attendus(): Collection
     {
-        return $this->lignes(fn (Builder $q) => $q->where('statut', 'acceptee'))
+        return $this->lignes(fn (Builder $q) => self::attendu($q))
             ->sortBy(fn ($ligne) => $ligne['demande']->date_acceptation)
             ->values();
+    }
+
+    /** Dépôt attendu : demande acceptée, vêtement pas encore apporté (le devis d'une réparation se fait après le dépôt). */
+    private static function attendu(Builder $q): Builder
+    {
+        return $q->where('statut', 'acceptee');
     }
 
     /** Dépôts confirmés sur les N derniers jours, les plus récents d'abord. */
@@ -80,13 +83,13 @@ class Depots
 
     public function nombreAttendus(): int
     {
-        return $this->compter(fn (Builder $q) => $q->where('statut', 'acceptee'));
+        return $this->compter(fn (Builder $q) => self::attendu($q));
     }
 
     public function nombreEnRetard(): int
     {
         // En retard = plus de DELAI_JOURS jours entiers depuis l'acceptation (même règle que l'affichage).
-        return $this->compter(fn (Builder $q) => $q->where('statut', 'acceptee')->where('date_acceptation', '<=', now()->subDays(self::DELAI_JOURS + 1)));
+        return $this->compter(fn (Builder $q) => self::attendu($q)->where('date_acceptation', '<=', now()->subDays(self::DELAI_JOURS + 1)));
     }
 
     public function statistiques(): array

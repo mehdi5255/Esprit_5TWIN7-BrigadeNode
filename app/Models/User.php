@@ -2,22 +2,30 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\StatutCompte;
-use App\Support\Modules;
+use App\Models\Ateliers\Atelier;
+use App\Models\Dons\Association;
+use App\Models\Dons\DemandeDon;
+use App\Models\Reparations\DemandeReparation;
+use App\Models\Transformations\DemandeTransformation;
+use App\Models\Transformations\Review;
+use App\Models\Vetements\Vetement;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Route;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+/** Utilisateur de la plateforme. L'adresse e-mail doit être vérifiée avant d'accéder aux espaces (MustVerifyEmail). */
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * Available roles, keyed by stored value.
@@ -28,6 +36,7 @@ class User extends Authenticatable
         'particulier' => 'Particulier',
         'atelier' => 'Atelier',
         'association' => 'Association',
+        'moderateur' => 'Modérateur',
         'admin' => 'Administrateur',
     ];
 
@@ -52,6 +61,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -59,10 +70,21 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    /** Le type de compte (colonne « role ») reste synchronisé avec le rôle Spatie qui porte les permissions. */
+    protected static function booted(): void
+    {
+        static::saved(function (User $user) {
+            if ($user->wasRecentlyCreated || $user->wasChanged('role')) {
+                $user->syncRoles([Role::findOrCreate($user->role, 'web')]);
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'statut' => StatutCompte::class,
         ];
@@ -73,9 +95,22 @@ class User extends Authenticatable
         return self::ROLES[$this->role] ?? $this->role;
     }
 
-    public function hasRole(string ...$roles): bool
+    /** Vrai si le dernier envoi de l'e-mail de vérification a échoué (serveur d'e-mails injoignable…). */
+    public bool $echecEnvoiVerification = false;
+
+    /**
+     * Envoi de l'e-mail de vérification (MustVerifyEmail) : un échec d'envoi ne doit jamais faire
+     * échouer l'inscription. Il est signalé dans les journaux, et l'utilisateur peut renvoyer le lien.
+     */
+    public function sendEmailVerificationNotification(): void
     {
-        return in_array($this->role, $roles, true);
+        try {
+            parent::sendEmailVerificationNotification();
+            $this->echecEnvoiVerification = false;
+        } catch (\Throwable $e) {
+            report($e);
+            $this->echecEnvoiVerification = true;
+        }
     }
 
     public function estBloque(): bool
@@ -125,49 +160,25 @@ class User extends Authenticatable
         return $this->hasOne(Association::class, 'responsable_id');
     }
 
-    /** Relations vers les structures dont le module est présent, pour with() / load(). */
-    public static function relationsStructure(): array
-    {
-        return array_values(Modules::filtrer(['ateliers' => 'atelier', 'associations' => 'association']));
-    }
-
-    /** Atelier ou association géré par ce compte (null si aucun, ou si le module n'est pas présent). */
-    public function structure(): ?Model
-    {
-        return match (true) {
-            $this->hasRole('atelier') && Modules::actif('ateliers') => $this->atelier,
-            $this->hasRole('association') && Modules::actif('associations') => $this->association,
-            default => null,
-        };
-    }
-
     /** Un compte a-t-il un historique qui interdit sa suppression ? */
     public function aUnHistorique(): bool
     {
-        $existe = fn (string $module, \Closure $requete) => Modules::actif($module) && $requete();
-        $structure = $this->structure();
-
         return match ($this->role) {
-            'particulier' => $existe('reparations', fn () => $this->demandesReparation()->exists())
-                || $existe('transformations', fn () => $this->demandesTransformation()->exists())
-                || $existe('dons', fn () => $this->demandesDon()->exists()),
-            'atelier' => (bool) $structure && ($existe('reparations', fn () => $structure->demandesReparation()->exists())
-                || $existe('transformations', fn () => $structure->demandesTransformation()->exists())),
-            'association' => (bool) $structure && $existe('dons', fn () => $structure->demandesDon()->exists()),
+            'particulier' => $this->demandesReparation()->exists() || $this->demandesTransformation()->exists() || $this->demandesDon()->exists(),
+            'atelier' => (bool) $this->atelier && ($this->atelier->demandesReparation()->exists() || $this->atelier->demandesTransformation()->exists()),
+            'association' => (bool) $this->association && $this->association->demandesDon()->exists(),
             default => false,
         };
     }
 
-    /** Page d'accueil selon le rôle, après connexion (accueil du site si le module n'est pas encore présent). */
+    /** Page d'accueil selon le rôle, après connexion. */
     public function homeRoute(): string
     {
-        $route = match ($this->role) {
-            'admin' => 'admin.dashboard',
-            'atelier' => 'atelier.dashboard',
-            'association' => 'association.dashboard',
-            default => 'vetements.index',
+        return match ($this->role) {
+            'admin', 'moderateur' => route('admin.dashboard'),
+            'atelier' => route('atelier.dashboard'),
+            'association' => route('association.dashboard'),
+            default => route('vetements.index'),
         };
-
-        return route(Route::has($route) ? $route : 'home');
     }
 }

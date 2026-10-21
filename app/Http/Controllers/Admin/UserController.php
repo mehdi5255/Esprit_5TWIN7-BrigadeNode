@@ -6,7 +6,6 @@ use App\Enums\StatutCompte;
 use App\Enums\StatutStructure;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Support\Modules;
 use Illuminate\Http\Request;
 
 /**
@@ -18,7 +17,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $users = User::query()
-            ->with(User::relationsStructure())
+            ->with(['atelier', 'association'])
             ->when($request->string('q')->trim()->value(), fn ($query, $search) => $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")))
             ->when($request->input('role'), fn ($query, $role) => $query->where('role', $role))
             ->when($request->input('statut'), fn ($query, $statut) => $query->where('statut', $statut))
@@ -27,7 +26,7 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.users.index', [
+        return view('back.commun.users.index', [
             'users' => $users,
             'stats' => [
                 'total' => User::count(),
@@ -39,15 +38,9 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $user->load(User::relationsStructure())->loadCount(array_values(Modules::filtrer([
-            'vetements' => 'vetements',
-            'reparations' => 'demandesReparation',
-            'transformations' => 'demandesTransformation',
-            'dons' => 'demandesDon',
-            'avis' => 'reviews',
-        ])));
+        $user->load(['atelier', 'association'])->loadCount(['vetements', 'demandesReparation', 'demandesTransformation', 'demandesDon', 'reviews']);
 
-        return view('admin.users.show', ['user' => $user]);
+        return view('back.commun.users.show', ['user' => $user]);
     }
 
     /** Valide un compte atelier / association en attente, et rend sa structure visible. */
@@ -91,6 +84,6 @@ class UserController extends Controller
     private function changerStatut(User $user, StatutCompte $compte, StatutStructure $structure): void
     {
         $user->forceFill(['statut' => $compte])->save();
-        $user->structure()?->forceFill(['statut' => $structure])->save();
+        ($user->atelier ?? $user->association)?->forceFill(['statut' => $structure])->save();
     }
 }

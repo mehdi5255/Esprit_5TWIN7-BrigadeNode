@@ -3,7 +3,7 @@
 namespace Database\Factories\Concerns;
 
 use App\Enums\StatutVetement;
-use App\Models\Vetement;
+use App\Models\Vetements\Vetement;
 use Illuminate\Database\Eloquent\Model;
 
 /**

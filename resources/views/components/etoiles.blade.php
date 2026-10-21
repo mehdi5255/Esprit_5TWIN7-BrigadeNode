@@ -1,4 +1,5 @@
 {{-- Note en étoiles. Paramètres : note (float|null), avis (int, optionnel), taille (classes, optionnel) --}}
+@props(['note' => null, 'avis' => null, 'taille' => 'h-4 w-4'])
 @php $taille = $taille ?? 'h-4 w-4'; @endphp
 @if($note)
 <span class="inline-flex items-center gap-1" title="{{ number_format($note, 1, ',', '') }} / 5">

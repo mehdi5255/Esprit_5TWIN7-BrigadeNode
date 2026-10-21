@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\StatutCompte;
 use App\Enums\StatutStructure;
 use App\Http\Controllers\Controller;
-use App\Models\Association;
-use App\Models\Atelier;
+use App\Models\Ateliers\Atelier;
+use App\Models\Dons\Association;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
@@ -37,7 +37,7 @@ class StructureController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.structures.index', compact('structures', 'type'));
+        return view('back.commun.structures.index', compact('structures', 'type'));
     }
 
     public function show(string $id)
@@ -46,7 +46,7 @@ class StructureController extends Controller
         $structure = $this->trouver($type, $id);
         $structure->load($type === 'ateliers' ? ['responsable', 'services'] : ['responsable', 'besoins.categorie']);
 
-        return view('admin.structures.show', [
+        return view('back.commun.structures.show', [
             'structure' => $structure,
             'type' => $type,
             'stats' => $structure->statistiques(),

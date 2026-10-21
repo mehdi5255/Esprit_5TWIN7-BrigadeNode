@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\ListeDesDemandes;
 use App\Http\Controllers\Controller;
-use App\Models\DemandeDon;
-use App\Models\DemandeReparation;
-use App\Models\DemandeTransformation;
+use App\Models\Dons\DemandeDon;
+use App\Models\Reparations\DemandeReparation;
+use App\Models\Transformations\DemandeTransformation;
 use Illuminate\Http\Request;
 
 /** Consultation (lecture seule) de toutes les demandes : l'admin n'agit pas à la place des structures. */
@@ -34,6 +34,6 @@ class SupervisionController extends Controller
             $demande->load('reparation');
         }
 
-        return view("backoffice.demandes.{$type}.show", ['demande' => $demande, 'espace' => 'admin']);
+        return view("back.{$type}.show", ['demande' => $demande, 'espace' => 'admin']);
     }
 }

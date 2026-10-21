@@ -11,9 +11,9 @@ class NotificationController extends Controller
         $notifications = $request->user()->notifications()->paginate(20);
         $request->user()->unreadNotifications->markAsRead();
 
-        return view('notifications.index', [
+        return view('front.commun.notifications.index', [
             'notifications' => $notifications,
-            'layout' => $request->user()->hasRole('particulier') ? 'layouts.frontoffice' : 'layouts.backoffice',
+            'layout' => $request->user()->hasRole('particulier') ? 'layouts.front' : 'layouts.back',
         ]);
     }
 }

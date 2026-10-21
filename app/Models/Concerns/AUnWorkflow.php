@@ -3,9 +3,9 @@
 namespace App\Models\Concerns;
 
 use App\Enums\StatutVetement;
-use App\Models\Review;
+use App\Models\Transformations\Review;
 use App\Models\User;
-use App\Models\Vetement;
+use App\Models\Vetements\Vetement;
 use App\Notifications\DemandeMiseAJour;
 use DomainException;
 use Illuminate\Database\Eloquent\Model;

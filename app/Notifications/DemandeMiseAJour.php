@@ -2,18 +2,16 @@
 
 namespace App\Notifications;
 
-use App\Models\DemandeDon;
-use App\Models\DemandeReparation;
-use App\Models\DemandeTransformation;
+use App\Models\Dons\DemandeDon;
+use App\Models\Reparations\DemandeReparation;
+use App\Models\Transformations\DemandeTransformation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notification;
 
 /** Changement d'étape d'une demande : au particulier, ou à la structure pour une nouvelle demande. */
 class DemandeMiseAJour extends Notification
 {
-    public function __construct(public Model $demande, public bool $pourStructure = false)
-    {
-    }
+    public function __construct(public Model $demande, public bool $pourStructure = false) {}
 
     public function via(object $notifiable): array
     {

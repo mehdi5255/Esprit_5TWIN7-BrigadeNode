@@ -13,10 +13,14 @@
     @php
         $prochaineEtape = match ($demande->statut) {
             StatutDemande::EN_ATTENTE => ['clock', "L'atelier étudie votre demande. Vous pouvez encore l'annuler."],
-            StatutDemande::ACCEPTEE => ['package', "Demande acceptée ! Déposez votre vêtement chez {$demande->atelier->nom}" . ($demande->atelier->adresseComplete() ? ' — '.$demande->atelier->adresseComplete() : '') . '.'],
-            StatutDemande::DEPOT_REMIS => ['package-check', "L'atelier a bien reçu votre vêtement. Le traitement va commencer."],
+            StatutDemande::ACCEPTEE => ['package', "C'est validé ! Déposez votre vêtement chez {$demande->atelier->nom}" . ($demande->atelier->adresseComplete() ? ' — '.$demande->atelier->adresseComplete() : '') . ". L'atelier établira le devis après l'avoir examiné."],
+            StatutDemande::PRET => ['party-popper', "Votre vêtement est prêt ! Passez le récupérer chez {$demande->atelier->nom}" . ($demande->facture ? ' et réglez la facture de '.number_format((float) $demande->facture->montant_total, 2, ',', ' ').' €.' : '.')],
+            StatutDemande::DEPOT_REMIS => match (true) {
+                $demande->devis?->statut === \App\Enums\StatutDevis::PROPOSE => ['file-text', $demande->devis->estExpire() ? "Le devis de l'atelier a expiré : contactez-le, ou refusez-le pour récupérer votre vêtement." : "L'atelier a diagnostiqué votre vêtement et vous propose un devis : acceptez-le pour lancer la réparation."],
+                $demande->devis?->statut === \App\Enums\StatutDevis::ACCEPTE => ['check', 'Devis accepté : la réparation va commencer.'],
+                default => ['search', "L'atelier a bien reçu votre vêtement et le diagnostique : vous recevrez son devis."],
+            },
             StatutDemande::EN_TRAITEMENT => ['scissors', 'Votre vêtement est entre de bonnes mains.'],
-            StatutDemande::PRET => ['party-popper', "Votre vêtement est prêt ! Passez le récupérer chez {$demande->atelier->nom}."],
             default => null,
         };
     @endphp
@@ -24,6 +28,7 @@
     <div class="mb-6 flex items-center gap-3 rounded-2xl bg-forest-50 p-4 text-sm font-medium text-forest-900"><i data-lucide="{{ $prochaineEtape[0] }}" class="h-5 w-5 shrink-0 text-forest-600"></i>{{ $prochaineEtape[1] }}</div>
     @endif
 
+    @if($demande->photo_probleme)<div class="mb-6">@include('front.reparations._photo-probleme')</div>@endif
     <div class="grid gap-6 md:grid-cols-2">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="font-display text-lg font-bold">Ma demande</h2>
@@ -54,6 +59,9 @@
                 <p class="mt-3 text-sm text-slate-500">Le compte rendu sera disponible dès que l'atelier aura commencé le travail.</p>
             @endif
         </div>
+    </div>
+    <div class="mt-6 grid gap-6 md:grid-cols-2">
+        @include('front.reparations._documents', ['espace' => 'particulier'])
     </div>
     <div class="mt-6">@include('partials.demandes.avis', ['type' => 'reparations'])</div>
 </section>

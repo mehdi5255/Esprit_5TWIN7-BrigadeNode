@@ -11,5 +11,6 @@
     "Pagination Navigation": "Navigation de la pagination",
     "Go to page :page": "Aller à la page :page",
     "&laquo; Previous": "&laquo; Précédent",
-    "Next &raquo;": "Suivant &raquo;"
+    "Next &raquo;": "Suivant &raquo;",
+    "The provided two factor authentication code was invalid.": "Le code saisi est incorrect ou a expiré : réessayez avec le code actuellement affiché."
 }

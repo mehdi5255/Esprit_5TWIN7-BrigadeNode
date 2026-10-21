@@ -43,8 +43,8 @@ Chaque module individuel porte sur **deux entités liées** avec un CRUD complet
 
 | Module | Étudiant | Entités (relation) | Contrôleurs | Factories / Seeder |
 |---|---|---|---|---|
-| 1 — Vêtements | _à compléter_ | `Vetement` → `CategorieVetement` (belongsTo) | `VetementController`, `Admin\CategorieVetementController` | `VetementFactory`, `CategorieVetementFactory` / `VetementSeeder`, `CategorieVetementSeeder` |
-| 2 — Réparations | _à compléter_ | `DemandeReparation` → `Reparation` (hasOne), → `Vetement`, → `Atelier` | `DemandeReparationController`, `Atelier\ReparationController` | `DemandeReparationFactory`, `ReparationFactory` / `ReparationSeeder` |
+| 1 — Vêtements | _à compléter_ | `Vetement` → `CategorieVetement` (belongsTo), `Vetement` ↔ `Matiere` (belongsToMany, pourcentage sur le pivot `matiere_vetement`) | `VetementController`, `Admin\CategorieVetementController`, `Admin\MatiereController` | `VetementFactory`, `CategorieVetementFactory`, `MatiereFactory` / `VetementSeeder`, `CategorieVetementSeeder`, `MatiereSeeder` |
+| 2 — Réparations | _à compléter_ | `DemandeReparation` → `Reparation` (hasOne), → `Devis` (hasOne), → `Facture` (hasOne) → `Garantie` (hasOne) → retours `DemandeReparation` (hasMany) | `DemandeReparationController`, `Atelier\ReparationController`, `Atelier\FactureController` | `DemandeReparationFactory`, `ReparationFactory`, `DevisFactory`, `FactureFactory`, `GarantieFactory` / `ReparationSeeder` |
 | 3 — Transformations & avis | _à compléter_ | `DemandeTransformation` → `Review` (morphOne), → `Atelier` | `DemandeTransformationController`, `Atelier\TransformationController`, `ReviewController` | `DemandeTransformationFactory`, `ReviewFactory` / `TransformationSeeder` |
 | 4 — Dons | _à compléter_ | `DemandeDon` → `BesoinAssociation` (belongsTo), → `Association` | `DemandeDonController`, `Association\DonController`, `Association\BesoinController` | `DemandeDonFactory`, `BesoinAssociationFactory`, `AssociationFactory` / `DonSeeder`, `AssociationSeeder` |
 | 5 — Ateliers & services | _à compléter_ | `ServiceAtelier` → `Atelier` (belongsTo) | `Atelier\ServiceController`, `Atelier\ProfilController` | `ServiceAtelierFactory`, `AtelierFactory` / `AtelierSeeder` |
@@ -54,34 +54,57 @@ Chaque module individuel porte sur **deux entités liées** avec un CRUD complet
 ```
 app/
 ├── Enums/                      Statuts et types (StatutDemande, StatutDon, TypeService…)
-├── Models/                     Modèles Eloquent et leurs relations
-│   └── Concerns/               AUnWorkflow (étapes communes des demandes), EstNotable (avis, logo)
-├── Http/Controllers/           Front office (particulier) et pages publiques
-│   ├── Admin/                  Back office administrateur
-│   ├── Atelier/                Espace atelier
-│   ├── Association/            Espace association
-│   └── Auth/                   Connexion, inscription, mot de passe oublié
-└── Notifications/              Notification de changement d'étape d'une demande
+├── Models/                     Partie commune : User
+│   ├── Concerns/               AUnWorkflow (étapes communes des demandes), EstNotable (avis, logo)
+│   ├── Vetements/              Module 1 : Vetement, CategorieVetement
+│   ├── Reparations/            Module 2 : DemandeReparation, Reparation
+│   ├── Transformations/        Module 3 : DemandeTransformation, Review
+│   ├── Dons/                   Module 4 : DemandeDon, BesoinAssociation, Association
+│   └── Ateliers/               Module 5 : Atelier, ServiceAtelier
+├── Http/Controllers/           Partie commune : Controller, Compte, Notification, Depot
+│   ├── Concerns/               ExecuteDesTransitions, ListeDesDemandes
+│   ├── Auth/                   Connexion, inscription, mot de passe oublié
+│   ├── Admin/                  Back office admin commun (tableau de bord, utilisateurs, structures, supervision, rapports)
+│   ├── Vetements/              Module 1 : VetementController, Admin/CategorieVetementController
+│   ├── Reparations/            Module 2 : DemandeReparationController, Atelier/ReparationController
+│   ├── Transformations/        Module 3 : DemandeTransformationController, Atelier/TransformationController,
+│   │                           ReviewController, AvisStructureController, Admin/ReviewController
+│   ├── Dons/                   Module 4 : DemandeDonController, AssociationController,
+│   │                           Association/ (Dashboard, Don, Besoin, Profil)
+│   └── Ateliers/               Module 5 : AtelierController, Atelier/ (Dashboard, Profil, Service)
+├── Notifications/              Notification de changement d'étape d'une demande
+└── Support/                    Photo, Depots, Modules (modules actifs = fichiers de routes présents)
+routes/
+├── web.php                     Partie commune (auth, compte, admin) + macros demandesParticulier(),
+│                               demandesStructure(), supervision() + chargement des modules
+└── modules/                    Un fichier par module : vetements, ateliers, reparations,
+                                transformations, dons
 database/
 ├── factories/                  Une factory par entité (+ états : acceptee(), recuperee(), enAttente()…)
 └── seeders/                    Un seeder par module, appelés par DatabaseSeeder
 resources/views/
-├── layouts/                    frontoffice.blade.php et backoffice.blade.php (héritage Blade)
-├── partials/                   Navbar, sidebar, alertes, blocs partagés
-├── components/                 badge, button, card, champ (formulaire), etoiles
-├── frontoffice/  auth/  compte/        Pages du front office
-└── admin/  atelier/  association/  backoffice/   Pages du back office
-routes/
-├── web.php                     Routes communes + macros partagées par les demandes
-└── modules/                    Un fichier de routes par module (ajouté par sa branche)
+├── layouts/                    front.blade.php et back.blade.php : parents (@yield, @stack('styles'), @stack('scripts'))
+├── partials/
+│   ├── front/                  navbar, footer, alerts, avis + blocs des formulaires de demande
+│   ├── back/                   navbar, sidebar, footer, alerts + demandes/ (en-tête, décision, liste, avis)
+│   └── demandes/               timeline, avis, compte rendu… partagés front + back
+├── components/                 <x-badge>, <x-button>, <x-card>, <x-champ>, <x-etoiles> (@props)
+├── front/                      Pages visiteur / particulier (@extends('layouts.front'))
+│   ├── commun/                 accueil, auth, mon compte, notifications
+│   └── vetements/  reparations/  transformations/  dons/  ateliers/      un dossier par module
+└── back/                       Pages de gestion (@extends('layouts.back'))
+    ├── commun/                 tableau de bord admin, utilisateurs, structures, dépôts, rapports
+    └── vetements/  reparations/  transformations/  dons/  ateliers/      un dossier par module
+public/
+├── front/js/                   tailwind.config.js (thème du front), front.js
+├── back/js/                    tailwind.config.js (thème du back), back.js (icônes, menu de la sidebar)
+└── js/                         validation.js, confirmation.js (partagés)
 lang/fr/                        Messages de validation et de réinitialisation en français
 ```
 
 ## Workflow Git
 
-- `main` contient la **partie commune** (utilisateurs, authentification, administration, templates front office et back office, code partagé des demandes). Elle démarre seule : connexion, inscription, gestion des comptes.
-- Chaque module est sur sa branche : `feature/vetements`, `feature/reparations`, `feature/transformations`, `feature/dons`, `feature/ateliers`. Une branche ne fait qu'**ajouter** les fichiers de son module (modèles, contrôleurs, migrations, factories, seeders, vues et `routes/modules/{module}.php`) : les fusions ne créent pas de conflit.
-- Le code commun vérifie qu'un module est présent (`App\Support\Modules::actif('vetements')`, `Route::has(...)`) avant de l'utiliser : menus, tableaux de bord et seeders s'adaptent aux modules déjà fusionnés.
-- Les modules dépendent les uns des autres (une réparation a besoin d'un vêtement et d'un atelier) : une branche seule n'est pas forcément utilisable. Ordre de fusion conseillé : `vetements` → `ateliers` → `reparations` → `transformations` → `dons`.
-- `main` reste stable : on n'y pousse pas directement. Intégration par **pull request**, relue par un autre membre de l'équipe.
+- `main` reste stable : on n'y pousse pas directement.
+- Chaque étudiant travaille sur sa branche : `feature/vetements`, `feature/reparations`, `feature/transformations`, `feature/dons`, `feature/ateliers`.
+- Intégration par **pull request**, relue par un autre membre de l'équipe.
 - Après un `git pull`, relancer `php artisan migrate:fresh --seed` si des migrations ou seeders ont changé.

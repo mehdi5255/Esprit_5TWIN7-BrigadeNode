@@ -7,6 +7,9 @@ use App\Enums\TypeReparation;
 use App\Enums\TypeService;
 use App\Models\Ateliers\Atelier;
 use App\Models\Reparations\DemandeReparation;
+use App\Models\Reparations\Devis;
+use App\Models\Reparations\Facture;
+use App\Models\Reparations\Garantie;
 use App\Models\Reparations\Reparation;
 use App\Models\Vetements\Vetement;
 use Database\Factories\Concerns\EtatsDeDemande;
@@ -57,12 +60,43 @@ class DemandeReparationFactory extends Factory
     {
         return $this->afterCreating(function (DemandeReparation $demande) {
             $this->synchroniserVetement($demande, ['recupere']);
+            $statut = $demande->statut->value;
 
             // Une réparation démarrée a sa fiche technique.
-            if (in_array($demande->statut->value, ['en_traitement', 'pret', 'recupere'], true)) {
+            if (in_array($statut, ['en_traitement', 'pret', 'recupere'], true)) {
                 Reparation::factory()->for($demande, 'demande')->create(
-                    $demande->statut->value === 'en_traitement' ? ['actions_realisees' => null, 'duree_reelle' => null] : []
+                    $statut === 'en_traitement' ? ['actions_realisees' => null, 'duree_reelle' => null] : []
                 );
+            }
+
+            // Le devis s'établit au dépôt, après diagnostic ; dès le traitement, il est forcément accepté.
+            if (in_array($statut, ['en_traitement', 'pret', 'recupere'], true)) {
+                $montant = $demande->cout_final ?? $demande->budget_max ?? fake()->randomElement([12, 15, 18, 22]);
+                $devis = Devis::factory()->for($demande, 'demande')
+                    ->state(['main_oeuvre' => $montant, 'valide_jusqu_au' => ($demande->date_acceptation ?? now())->copy()->addDays(Devis::VALIDITE_JOURS)])
+                    ->accepte()
+                    ->create();
+            }
+
+            // Terminée : facture émise au montant du devis ; récupérée : facture payée + garantie.
+            if (in_array($statut, ['pret', 'recupere'], true)) {
+                $facture = Facture::factory()->for($demande, 'demande')
+                    ->when($statut === 'recupere', fn ($f) => $f->payee())
+                    ->create([
+                        'montant_devis' => $devis->main_oeuvre,
+                        'supplement' => 0,
+                        'motif_supplement' => null,
+                        'montant_total' => $demande->cout_final ?? $devis->main_oeuvre,
+                        'date_emission' => $demande->date_fin_traitement ?? now(),
+                    ]);
+
+                if ($statut === 'recupere') {
+                    $debut = $demande->date_recuperation ?? now();
+                    Garantie::factory()->for($facture)->create([
+                        'date_debut' => $debut,
+                        'date_fin' => $debut->copy()->addMonths(Garantie::DUREE_MOIS),
+                    ]);
+                }
             }
         });
     }

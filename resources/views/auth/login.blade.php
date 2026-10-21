@@ -1,4 +1,4 @@
-@extends('layouts.frontoffice')
+@extends('layouts.front')
 
 @section('title', 'Connexion')
 

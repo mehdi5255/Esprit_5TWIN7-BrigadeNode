@@ -1,3 +1,4 @@
+@props(['label', 'color' => 'gray'])
 @php
     $styles = [
         'green' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',

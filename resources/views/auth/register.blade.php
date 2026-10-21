@@ -1,4 +1,4 @@
-@extends('layouts.frontoffice')
+@extends('layouts.front')
 
 @section('title', 'Inscription')
 
@@ -12,11 +12,11 @@
             <fieldset>
                 <legend class="mb-3 text-sm font-semibold text-slate-700">Je suis…</legend>
                 <div class="grid gap-3 sm:grid-cols-3">
-                    @foreach(array_intersect_key([
+                    @foreach([
                         'particulier' => ['shirt', 'Un particulier', 'Je fais réparer, transformer ou je donne mes vêtements.'],
                         'atelier' => ['store', 'Un atelier', 'Je propose des services de réparation ou d’upcycling.'],
                         'association' => ['heart-handshake', 'Une association', 'Je reçois des dons et les redistribue.'],
-                    ], array_flip($roles)) as $valeur => [$icone, $titre, $texte])
+                    ] as $valeur => [$icone, $titre, $texte])
                     <label class="cursor-pointer rounded-2xl border border-slate-200 p-4 has-[:checked]:border-forest-500 has-[:checked]:bg-forest-50">
                         <input type="radio" name="role" value="{{ $valeur }}" class="sr-only" @checked($role === $valeur)>
                         <i data-lucide="{{ $icone }}" class="h-6 w-6 text-forest-600"></i>
@@ -31,16 +31,16 @@
             <div data-structure class="space-y-5 rounded-2xl bg-slate-50 p-5" @if($role === 'particulier') hidden @endif>
                 <p class="text-sm text-slate-600"><i data-lucide="info" class="mr-1 inline h-4 w-4"></i>Votre compte professionnel sera vérifié par notre équipe avant d’être visible des particuliers.</p>
                 <div class="grid gap-5 sm:grid-cols-2">
-                    @include('components.champ', ['label' => 'Nom de la structure', 'name' => 'structure_nom', 'placeholder' => 'Ex. Atelier Fil Rouge', 'required' => true, 'attrs' => 'data-requis-pro'])
-                    @include('components.champ', ['label' => 'Ville', 'name' => 'structure_ville', 'placeholder' => 'Paris', 'required' => true, 'attrs' => 'data-requis-pro'])
+                    <x-champ label="Nom de la structure" name="structure_nom" placeholder="Ex. Atelier Fil Rouge" :required="true" data-requis-pro />
+                    <x-champ label="Ville" name="structure_ville" placeholder="Paris" :required="true" data-requis-pro />
                 </div>
             </div>
 
             <div class="grid gap-5 sm:grid-cols-2">
-                @include('components.champ', ['label' => 'Nom complet', 'name' => 'name', 'required' => true, 'attrs' => 'autocomplete="name"'])
-                @include('components.champ', ['label' => 'E-mail', 'name' => 'email', 'type' => 'email', 'required' => true, 'attrs' => 'autocomplete="email"'])
-                @include('components.champ', ['label' => 'Mot de passe', 'name' => 'password', 'type' => 'password', 'required' => true, 'help' => '8 caractères minimum.', 'attrs' => 'autocomplete="new-password"'])
-                @include('components.champ', ['label' => 'Confirmer le mot de passe', 'name' => 'password_confirmation', 'type' => 'password', 'required' => true, 'attrs' => 'autocomplete="new-password"'])
+                <x-champ label="Nom complet" name="name" :required="true" autocomplete="name" />
+                <x-champ label="E-mail" name="email" type="email" :required="true" autocomplete="email" />
+                <x-champ label="Mot de passe" name="password" type="password" :required="true" help="8 caractères minimum." autocomplete="new-password" />
+                <x-champ label="Confirmer le mot de passe" name="password_confirmation" type="password" :required="true" autocomplete="new-password" />
             </div>
             <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-forest-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-forest-700">Créer mon compte</button>
         </form>
@@ -49,7 +49,7 @@
 </section>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
     // Affiche les champs « structure » uniquement pour un atelier ou une association.
     const formulaire = document.querySelector('[data-inscription]');
@@ -62,4 +62,4 @@
     formulaire.querySelectorAll('input[name=role]').forEach(radio => radio.addEventListener('change', majStructure));
     majStructure();
 </script>
-@endsection
+@endpush

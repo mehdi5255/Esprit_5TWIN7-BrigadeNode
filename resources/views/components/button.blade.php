@@ -1,3 +1,4 @@
+@props(['label', 'href' => '#', 'icon' => null, 'variant' => 'primary'])
 @php
     $styles = [
         'primary' => 'bg-forest-600 text-white hover:bg-forest-700 shadow-sm',

@@ -17,7 +17,7 @@ class DepotController extends Controller
         $user = $request->user();
         $depots = Depots::pour($user, $request->input('type'));
 
-        return view('backoffice.depots.index', [
+        return view('back.commun.depots.index', [
             'espace' => $user->role,
             'types' => Depots::pour($user)->types(),
             'attendus' => $depots->attendus(),

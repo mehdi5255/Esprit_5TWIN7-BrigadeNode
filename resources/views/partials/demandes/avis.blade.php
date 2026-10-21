@@ -5,7 +5,7 @@
             <h2 class="font-display text-lg font-bold">Votre avis</h2>
             @if($review->statut->value === 'masque')<span class="text-xs font-semibold text-slate-500">Masqué par la modération</span>@endif
         </div>
-        <div class="mt-3">@include('components.etoiles', ['note' => $review->note])</div>
+        <div class="mt-3"><x-etoiles :note="$review->note" /></div>
         @if($review->commentaire)<p class="mt-3 text-sm text-slate-600">“{{ $review->commentaire }}”</p>@endif
         @if($review->reponse)
             <div class="mt-4 rounded-2xl bg-white p-4 text-sm"><p class="font-semibold">Réponse de {{ $demande->structureModel()->nom }}</p><p class="mt-1 text-slate-600">{{ $review->reponse }}</p></div>
@@ -16,7 +16,7 @@
                 <form method="POST" action="{{ route('avis.update', $review) }}" class="mt-4 space-y-4 rounded-2xl bg-white p-4">
                     @csrf @method('PUT')
                     @include('partials.demandes.choix-note', ['noteActuelle' => $review->note])
-                    @include('components.champ', ['label' => 'Commentaire', 'name' => 'commentaire', 'type' => 'textarea', 'value' => $review->commentaire])
+                    <x-champ label="Commentaire" name="commentaire" type="textarea" :value="$review->commentaire" />
                     <button class="inline-flex items-center gap-2 rounded-xl bg-forest-600 px-4 py-2.5 font-semibold text-white hover:bg-forest-700"><i data-lucide="save" class="h-4 w-4"></i>Enregistrer</button>
                 </form>
             </details>
@@ -28,7 +28,7 @@
         @csrf
         <h2 class="font-display text-lg font-bold">Donnez votre avis sur {{ $demande->structureModel()->nom }}</h2>
         @include('partials.demandes.choix-note', ['noteActuelle' => null])
-        @include('components.champ', ['label' => 'Commentaire', 'name' => 'commentaire', 'type' => 'textarea', 'placeholder' => 'Qu’avez-vous pensé du service ?'])
+        <x-champ label="Commentaire" name="commentaire" type="textarea" placeholder="Qu’avez-vous pensé du service ?" />
         <button class="inline-flex items-center gap-2 rounded-xl bg-forest-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-forest-700"><i data-lucide="send" class="h-4 w-4"></i>Publier mon avis</button>
     </form>
 @endif

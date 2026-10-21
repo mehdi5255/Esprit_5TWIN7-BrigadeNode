@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 trait ListeDesDemandes
 {
     /**
-     * @param  string  $type    reparations | transformations | dons
+     * @param  string  $type  reparations | transformations | dons
      * @param  string  $espace  admin | atelier | association
      */
     protected function liste(Request $request, Builder $base, string $type, string $espace)
@@ -30,6 +30,6 @@ trait ListeDesDemandes
 
         $compteurs = (clone $base)->toBase()->reorder()->selectRaw('statut, count(*) as total')->groupBy('statut')->pluck('total', 'statut');
 
-        return view("backoffice.demandes.{$type}.index", compact('demandes', 'compteurs', 'espace'));
+        return view("back.{$type}.index", compact('demandes', 'compteurs', 'espace'));
     }
 }
