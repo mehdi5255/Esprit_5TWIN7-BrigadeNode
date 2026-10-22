@@ -91,3 +91,11 @@ test('l’impact est compté une fois le vêtement sauvé, sur le dressing, l’
     // Formulaire : catalogue, compositions typiques et lien d'exemple pour le scan.
     $this->actingAs($this->lina)->get(route('vetements.create'))->assertOk()->assertSee('Scanner l')->assertSee('Je n\'ai plus l\'étiquette', false)->assertSee('etiquette-composition.png');
 });
+
+test('les noms chinois des matières servent à lire les étiquettes en chinois', function () {
+    expect($this->coton->motsCles())->toContain('棉', 'co', 'cotton')
+        ->and($this->polyester->motsCles())->toContain('聚酯纤维', '涤纶')
+        ->and(Matiere::firstWhere('nom', 'Élasthanne')->motsCles())->toContain('氨纶');
+
+    $this->actingAs($this->lina)->get(route('vetements.create'))->assertOk()->assertSee('etiquette-composition-chinois.png');
+});

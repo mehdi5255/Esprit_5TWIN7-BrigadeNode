@@ -19,12 +19,18 @@
             <legend class="text-sm font-semibold text-slate-700">Composition</legend>
             <p class="mt-1 text-xs text-slate-500">Recopiez l'étiquette cousue à l'intérieur (col, couture de côté ou taille). Elle sert à estimer l'impact évité et à vous donner des conseils d'entretien.</p>
         </div>
-        <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-100">
-            <i data-lucide="scan-text" class="h-4 w-4"></i><span data-scan-libelle>Scanner l'étiquette</span>
-            <input type="file" accept="image/*" capture="environment" class="sr-only" data-scan>
-        </label>
+        <div class="flex flex-wrap gap-2">
+            <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-100">
+                <i data-lucide="scan-text" class="h-4 w-4"></i><span data-scan-libelle>Scanner l'étiquette</span>
+                <input type="file" accept="image/*" capture="environment" class="sr-only" data-scan>
+            </label>
+            <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-100">
+                <i data-lucide="qr-code" class="h-4 w-4"></i><span data-qr-libelle>Scanner un QR code</span>
+                <input type="file" accept="image/*" capture="environment" class="sr-only" data-scan-qr>
+            </label>
+        </div>
     </div>
-    <p class="text-xs text-slate-400">Pas d'étiquette sous la main ? <a href="{{ asset('demo/etiquette-composition.png') }}" target="_blank" class="font-semibold text-violet-700 hover:underline">Essayez le scan avec cet exemple</a> (enregistrez l'image, puis scannez-la).</p>
+    <p class="text-xs text-slate-400">Pas d'étiquette sous la main ? Essayez avec <a href="{{ asset('demo/etiquette-composition.png') }}" target="_blank" class="font-semibold text-violet-700 hover:underline">cette étiquette</a>, <a href="{{ asset('demo/etiquette-composition-chinois.png') }}" target="_blank" class="font-semibold text-violet-700 hover:underline">celle-ci en chinois</a> ou <a href="{{ asset('demo/qr-passeport-textile.png') }}" target="_blank" class="font-semibold text-violet-700 hover:underline">ce QR code</a> (enregistrez l'image, puis scannez-la).</p>
     <p data-scan-message class="hidden rounded-xl px-3 py-2 text-xs"></p>
 
     <div class="space-y-2" data-lignes>

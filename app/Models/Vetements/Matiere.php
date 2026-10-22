@@ -59,11 +59,14 @@ class Matiere extends Model
         $query->where('actif', true)->orderBy('nom');
     }
 
-    /** Mots qui désignent la matière sur une étiquette, normalisés (sans accents, en minuscules). */
+    /**
+     * Mots qui désignent la matière sur une étiquette, normalisés (sans accents, en minuscules).
+     * Les noms chinois (棉, 涤纶…) sont gardés tels quels : la translittération les rendrait méconnaissables.
+     */
     public function motsCles(): array
     {
         return collect([$this->nom, ...($this->abreviations ?? [])])
-            ->map(fn ($mot) => Str::lower(Str::ascii(trim($mot))))
+            ->map(fn ($mot) => preg_match('/\p{Han}/u', $mot) ? trim($mot) : Str::lower(Str::ascii(trim($mot))))
             ->filter()->unique()->values()->all();
     }
 

@@ -26,11 +26,26 @@ class MatiereSeeder extends Seeder
         ['Autre matière', 'autre', ['autre', 'other'], 15, 3000, null],
     ];
 
+    /** Noms chinois des matières, pour lire les étiquettes « Made in China » (棉 70%…). */
+    public const NOMS_CHINOIS = [
+        'Coton' => ['棉', '纯棉', '全棉'],
+        'Laine' => ['羊毛', '绵羊毛', '羊绒'],
+        'Lin' => ['亚麻', '麻'],
+        'Soie' => ['真丝', '桑蚕丝', '蚕丝'],
+        'Cuir' => ['皮革', '真皮', '牛皮'],
+        'Polyester' => ['聚酯纤维', '聚酯', '涤纶'],
+        'Polyamide' => ['锦纶', '尼龙', '聚酰胺'],
+        'Élasthanne' => ['氨纶', '弹性纤维'],
+        'Acrylique' => ['腈纶', '聚丙烯腈'],
+        'Viscose' => ['粘纤', '粘胶纤维', '粘胶', '黏胶纤维', '人造棉'],
+        'Autre matière' => ['其他', '其它'],
+    ];
+
     public function run(): void
     {
         foreach (self::CATALOGUE as [$nom, $type, $abreviations, $co2, $eau, $entretien]) {
             Matiere::updateOrCreate(['nom' => $nom], [
-                'type' => $type, 'abreviations' => $abreviations, 'co2_kg_par_kg' => $co2, 'eau_litres_par_kg' => $eau, 'entretien' => $entretien,
+                'type' => $type, 'abreviations' => [...$abreviations, ...self::NOMS_CHINOIS[$nom] ?? []], 'co2_kg_par_kg' => $co2, 'eau_litres_par_kg' => $eau, 'entretien' => $entretien,
             ]);
         }
     }

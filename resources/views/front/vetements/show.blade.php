@@ -26,6 +26,16 @@
                     @if($vetement->compositionTexte())<p class="mt-1 font-semibold">{{ $vetement->compositionTexte() }}</p>
                     @else<p class="mt-1 text-slate-500">{{ $vetement->matiere ? $vetement->matiere.' — ' : '' }}<a href="{{ route('vetements.edit', $vetement) }}" class="font-semibold text-forest-700 hover:underline">Compléter la composition</a> pour connaître son impact.</p>@endif
                 </div>
+                @if($passeport = $vetement->passeportTexte())
+                <div class="mt-4 flex flex-wrap items-center gap-4 rounded-2xl border border-violet-100 bg-violet-50/50 p-3">
+                    <div class="shrink-0 rounded-xl bg-white p-1.5 shadow-sm">{!! \App\Support\QrCode::svg($passeport, 140) !!}</div>
+                    <div class="min-w-0 flex-1 text-sm">
+                        <p class="flex items-center gap-2 font-semibold text-violet-900"><i data-lucide="qr-code" class="h-4 w-4"></i>Passeport textile</p>
+                        <p class="mt-1 text-xs text-slate-600">Ce QR code contient la composition et le poids du vêtement. Imprimez-le et glissez-le avec le vêtement quand vous le donnez : le prochain propriétaire le scanne dans « Ajouter un vêtement » au lieu de chercher l'étiquette.</p>
+                        <a href="data:image/svg+xml;base64,{{ base64_encode('<?xml version="1.0" encoding="UTF-8"?>'."\n".\App\Support\QrCode::svg($passeport, 400)) }}" download="passeport-{{ \Illuminate\Support\Str::slug($vetement->nom) }}.svg" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:underline"><i data-lucide="download" class="h-3.5 w-3.5"></i>Télécharger le QR code</a>
+                    </div>
+                </div>
+                @endif
                 @if($vetement->description)<p class="mt-6 leading-7 text-slate-600">{{ $vetement->description }}</p>@endif
 
                 @if($impact = $vetement->impact())

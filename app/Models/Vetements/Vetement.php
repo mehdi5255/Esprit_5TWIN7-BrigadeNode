@@ -71,6 +71,25 @@ class Vetement extends Model
     }
 
     /**
+     * Contenu du QR code « passeport textile » : du texte lisible par n'importe quel appareil photo,
+     * que le scan du formulaire sait relire (composition et poids) pour le prochain propriétaire.
+     * Null sans composition.
+     */
+    public function passeportTexte(): ?string
+    {
+        if ($this->matieres->isEmpty()) {
+            return null;
+        }
+
+        return collect([
+            'TextileCycle - Passeport textile',
+            "Nom : {$this->nom}",
+            'Composition : '.$this->matieres->map(fn (Matiere $m) => "{$m->pivot->pourcentage}% {$m->nom}")->join(', '),
+            $this->poids_grammes ? "Poids : {$this->poids_grammes} g" : null,
+        ])->filter()->join("\n");
+    }
+
+    /**
      * Impact de fabrication d'un vêtement équivalent neuf, évité en le gardant en vie :
      * Σ poids (kg) × pourcentage × facteur de la matière. Null sans poids ou sans composition.
      *
