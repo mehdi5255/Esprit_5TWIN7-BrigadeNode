@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\MetriquesController;
 use App\Http\Middleware\VerifierStatutCompte;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -15,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // Métriques Prometheus pour Grafana Cloud : hors du groupe « web » (pas de session ni de cookie à chaque lecture).
+        then: fn () => Route::get('/metrics', MetriquesController::class)->name('metriques'),
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Rôles et permissions vérifiés côté serveur (Spatie Permission) : role:admin|moderateur, permission:voir-rapports…

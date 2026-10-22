@@ -37,6 +37,11 @@ return [
         'image_model' => env('GEMINI_IMAGE_MODEL'),
     ],
 
+    // Supervision : jeton exigé pour lire /metrics (Grafana Cloud). Vide = page désactivée.
+    'metriques' => [
+        'token' => env('METRICS_TOKEN'),
+    ],
+
     'cloudflare' => [
         'account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
         'token' => env('CLOUDFLARE_API_TOKEN'),
