@@ -32,7 +32,7 @@
                     <div class="min-w-0 flex-1 text-sm">
                         <p class="flex items-center gap-2 font-semibold text-violet-900"><i data-lucide="qr-code" class="h-4 w-4"></i>Passeport textile</p>
                         <p class="mt-1 text-xs text-slate-600">Ce QR code contient la composition et le poids du vêtement. Imprimez-le et glissez-le avec le vêtement quand vous le donnez : le prochain propriétaire le scanne dans « Ajouter un vêtement » au lieu de chercher l'étiquette.</p>
-                        <a href="data:image/svg+xml;base64,{{ base64_encode('<?xml version="1.0" encoding="UTF-8"?>'."\n".\App\Support\QrCode::svg($passeport, 400)) }}" download="passeport-{{ \Illuminate\Support\Str::slug($vetement->nom) }}.svg" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:underline"><i data-lucide="download" class="h-3.5 w-3.5"></i>Télécharger le QR code</a>
+                        <a href="data:image/svg+xml;base64,{{ base64_encode(\App\Support\QrCode::fichierSvg($passeport, 400)) }}" download="passeport-{{ \Illuminate\Support\Str::slug($vetement->nom) }}.svg" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:underline"><i data-lucide="download" class="h-3.5 w-3.5"></i>Télécharger le QR code</a>
                     </div>
                 </div>
                 @endif
